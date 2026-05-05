@@ -1,0 +1,2377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="theme-color" content="#1a1916"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Shift Analyzer"/>
+<link id="pwaManifest" rel="manifest"/>
+<title>CDWR Shift Analyzer v1.3.1</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f4f1;
+    --surface: #ffffff;
+    --surface2: #f0efe9;
+    --border: rgba(0,0,0,0.10);
+    --border-strong: rgba(0,0,0,0.22);
+    --text: #1a1916;
+    --text-muted: #6b6960;
+    --text-hint: #9e9c93;
+    --blue: #1a5fa8;
+    --blue-bg: #e8f0fa;
+    --blue-text: #0f3d72;
+    --green: #1D9E75;
+    --green-bg: #e4f5ed;
+    --green-text: #0e5c42;
+    --coral: #D85A30;
+    --coral-bg: #faeae3;
+    --coral-text: #8a3318;
+    --purple: #7F77DD;
+    --purple-bg: #efeefc;
+    --purple-text: #3c3489;
+    --amber-bg: #fef3e2;
+    --amber-text: #7a4f0d;
+    --red-bg: #fde8e8;
+    --red-text: #8a1f1f;
+    --gray-bg: #f0efe9;
+    --gray-text: #5a5850;
+    --axis: #2c2a26;
+    --grid: rgba(0,0,0,0.07);
+    --tick: #5a5850;
+    --btn-primary-bg: #2c2a26;
+    --btn-primary-text: #ffffff;
+    --label-coral: #8a3318;
+    --label-purple: #3c3489;
+    --radius: 8px;
+    --radius-lg: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(0,0,0,0.06);
+  }
+
+  [data-theme="dark"] {
+    --bg: #141312;
+    --surface: #1e1d1b;
+    --surface2: #272522;
+    --border: rgba(255,255,255,0.07);
+    --border-strong: rgba(255,255,255,0.18);
+    --text: #e8e6e0;
+    --text-muted: #9e9c93;
+    --text-hint: #6b6960;
+    --blue: #5b9fd4;
+    --blue-bg: #162030;
+    --blue-text: #9ac5e8;
+    --green: #29c492;
+    --green-bg: #0e2620;
+    --green-text: #6ddcb8;
+    --coral: #e8714a;
+    --coral-bg: #2a1510;
+    --coral-text: #f0a080;
+    --purple: #9b94e8;
+    --purple-bg: #1a1830;
+    --purple-text: #b8b2f0;
+    --amber-bg: #2a1e08;
+    --amber-text: #d4a04a;
+    --red-bg: #2a1010;
+    --red-text: #e87070;
+    --gray-bg: #272522;
+    --gray-text: #9e9c93;
+    --axis: #c8c4bc;
+    --grid: rgba(255,255,255,0.06);
+    --tick: #9e9c93;
+    --btn-primary-bg: #5b9fd4;
+    --btn-primary-text: #ffffff;
+    --label-coral: #f0a080;
+    --label-purple: #b8b2f0;
+    --shadow: 0 1px 4px rgba(0,0,0,0.4), 0 0 0 0.5px rgba(255,255,255,0.06);
+  }
+  [data-theme="dark"] header { background: #0e0d0c; }
+  [data-theme="dark"] canvas { background: var(--surface); border-radius: 4px; }
+
+  .theme-toggle {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.20);
+    border-radius: 20px;
+    padding: 4px 12px 4px 8px;
+    cursor: pointer;
+    font-size: 11px;
+    font-family: 'Trebuchet MS', Tahoma, Aptos, sans-serif;
+    color: rgba(255,255,255,0.80);
+    transition: background 0.15s;
+    user-select: none;
+    flex-shrink: 0;
+  }
+  .theme-toggle:hover { background: rgba(255,255,255,0.18); }
+  .theme-toggle .tt-track {
+    width: 28px; height: 16px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 8px;
+    position: relative;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .theme-toggle .tt-knob {
+    width: 12px; height: 12px;
+    background: #fff;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px; left: 2px;
+    transition: left 0.2s;
+  }
+  [data-theme="dark"] .theme-toggle .tt-track { background: #5b9fd4; }
+  [data-theme="dark"] .theme-toggle .tt-knob  { left: 14px; }
+
+  body {
+    font-family: 'Trebuchet MS', Tahoma, Aptos, sans-serif;
+    font-size: 14px;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  header {
+    background: var(--text);
+    color: #fff;
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  header img.logo {
+    height: 44px;
+    width: auto;
+    flex-shrink: 0;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+  }
+  header h1 {
+    font-size: 16px;
+    font-weight: normal;
+    
+    font-family: 'Trebuchet MS', Tahoma, Aptos, sans-serif;
+  }
+  header span {
+    font-size: 12px;
+    opacity: 0.45;
+    font-family: 'Trebuchet MS', Tahoma, Aptos, sans-serif;
+    
+  }
+
+  .main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 20px 48px;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 0.5px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+  }
+
+  .panel-title {
+    font-size: 12px;
+    font-weight: normal;
+    
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Trebuchet MS', Tahoma, Aptos, sans-serif;
+  }
+  .btn.export {
+    height: 24px; padding: 0 8px; font-size: 10px; border-radius: 5px;
+    background: var(--surface2); border: 0.5px solid var(--border-strong);
+    color: var(--text-muted); cursor: pointer;
+    font-family: 'Trebuchet MS', Tahoma, Aptos, sans-serif;
+    white-space: nowrap; transition: background 0.12s;
+  }
+  .btn.export:hover { background: var(--border-strong); color: var(--text); }
+
+  .panel-title .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--blue);
+    color: #fff;
+    font-size: 10px;
+    flex-shrink: 0;
+  }
+
+  .row { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+  .field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 100px; }
+  .field label { font-size: 11px; color: var(--text-muted); font-family: 'Trebuchet MS', Tahoma, Aptos, sans-serif;  }
+
+  input[type="text"], input[type="password"], input[type="date"], input[type="number"], select {
+    height: 34px;
+    border: 0.5px solid var(--border-strong);
+    border-radius: var(--radius);
+    padding: 0 10px;
+    font-size: 13px;
+    font-family: 'Trebuchet MS', Tahoma, Aptos, sans-serif;
+    color: var(--text);
+    background: var(--surface);
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input:focus, select:focus { border-color: var(--blue); }
+
+  .btn {
+    height: 34px;
+    padding: 0 14px;
+    border-radius: var(--radius);
+    border: 0.5px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'Trebuchet MS', Tahoma, Aptos, sans-serif;
+    
+    white-space: nowrap;
+    transition: background 0.12s;
+  }
+  .btn:hover { background: var(--surface2); }
+  .btn:disabled { opacity: 0.4; cursor: default; }
+  .btn.primary {
+    background: var(--btn-primary-bg);
+    color: var(--btn-primary-text);
+    border-color: var(--btn-primary-bg);
+  }
+  .btn.primary:hover { opacity: 0.85; }
+  .btn.small { height: 28px; padding: 0 10px; font-size: 11px; }
+
+  .status {
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: var(--radius);
+    margin-top: 8px;
+    font-family: 'Trebuchet MS', Tahoma, Aptos, sans-serif;
+    
+  }
+  .status.info { background: var(--blue-bg); color: var(--blue-text); }
+  .status.ok   { background: var(--green-bg); color: var(--green-text); }
+  .status.err  { background: var(--red-bg); color: var(--red-text); }
+
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .mc {
+    background: var(--surface2);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    border: 0.5px solid var(--border);
+  }
+  .mc .mk { font-size: 10px; color: var(--text-hint); font-family: 'Trebuchet MS', Tahoma, Aptos, sans-serif;  text-transform: uppercase; margin-bottom: 2px; }
+  .mc .mv { font-size: 13px; font-weight: normal; }
+
+  .range-bar {
+    display: flex;
+    gap: 7px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+    padding: 8px 10px;
+    background: var(--surface2);
+    border-radius: var(--radius);
+    border: 0.5px solid var(--border);
+  }
+
+  .toggles-row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+    align-items: center;
+  }
+  .ti {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    cursor: pointer;
+    user-select: none;
+    font-family: 'Trebuchet MS', Tahoma, Aptos, sans-serif;
+    
+    color: var(--text-muted);
+  }
+  .ti input { cursor: pointer; accent-color: var(--coral); width: 13px; height: 13px; }
+
+  .chart-outer { display: flex; justify-content: center; }
+
+  .legend-row {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'Trebuchet MS', Tahoma, Aptos, sans-serif;
+  }
+  .legend-row span { display: flex; align-items: center; gap: 5px; }
+
+  .side-layout { display: flex; gap: 16px; align-items: flex-start; overflow-x: auto; justify-content: space-between; }
+  .side-table { flex: 0 0 444px; }
+
+  .meas-table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; }
+  .meas-table th {
+    text-align: left;
+    padding: 5px 5px;
+    font-size: 10px;
+    font-weight: normal;
+    color: var(--text-hint);
+    border-bottom: 1px solid var(--border-strong);
+    background: var(--surface2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: 'Trebuchet MS', Tahoma, Aptos, sans-serif;
+    
+    text-transform: uppercase;
+  }
+  .meas-table td {
+    padding: 4px 5px;
+    border-bottom: 0.5px solid var(--border);
+    vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: 'Trebuchet MS', Tahoma, Aptos, sans-serif;
+    font-size: 11px;
+  }
+  .meas-table tr.dr { cursor: pointer; }
+  .meas-table tr.dr:hover td { background: var(--surface2); }
+  .meas-table tr.sel td { background: var(--blue-bg); color: var(--blue-text); }
+  .plot-check { width: 12px; height: 12px; cursor: pointer; accent-color: var(--coral); }
+
+  .pct-pill {
+    display: inline-block;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: normal;
+    font-family: 'Trebuchet MS', Tahoma, Aptos, sans-serif;
+  }
+
+  .band-select {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    font-size: 11px;
+    font-family: 'Trebuchet MS', Tahoma, Aptos, sans-serif;
+    color: var(--text-muted);
+  }
+  .band-select select { height: 28px; font-size: 11px; padding: 0 6px; width: auto; }
+
+  hr.divider { border: none; border-top: 0.5px solid var(--border); margin: 10px 0; }
+
+  /* Shift-line group columns */
+  .sl-groups { display: flex; gap: 10px; flex-wrap: wrap; }
+  .sl-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: var(--surface);
+    border: 0.5px solid var(--border-strong);
+    border-radius: var(--radius);
+    padding: 7px 9px;
+    min-width: 148px;
+  }
+  .sl-group-title {
+    font-size: 10px;
+    color: var(--text-hint);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 3px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .sl-color-swatch {
+    display: inline-block;
+    width: 20px;
+    height: 3px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .sl-pair-row {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .sl-pair-label {
+    font-size: 10px;
+    color: var(--text-hint);
+    width: 36px;
+    flex-shrink: 0;
+  }
+  .sl-pair-row input {
+    width: 60px !important;
+    height: 26px !important;
+    font-size: 11px !important;
+    padding: 0 6px !important;
+  }
+
+  /* Rating select in measurements table */
+  .rtg-select {
+    height: 22px;
+    font-size: 10px;
+    font-family: 'Trebuchet MS', Tahoma, Aptos, sans-serif;
+    border: 0.5px solid var(--border-strong);
+    border-radius: 3px;
+    background: var(--surface);
+    color: var(--text);
+    padding: 0 2px;
+    width: 38px;
+    cursor: pointer;
+  }
+  .rtg-G { background: #e4f5ed; color: #0e5c42; border-color: #1D9E75; }
+  .rtg-F { background: var(--amber-bg); color: var(--amber-text); border-color: #c8820a; }
+  .rtg-P { background: var(--red-bg); color: var(--red-text); border-color: #c0392b; }
+</style>
+</head>
+<body>
+
+<header>
+  <img class="logo" src="data:image/png;base64,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" alt="Colorado DNR"/>
+  <h1>CDWR Shift Analyzer</h1>
+  <span>ver. 1.4.0 · Colorado CDSS Telemetry</span>
+  <div class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
+    <div class="tt-track"><div class="tt-knob"></div></div>
+    <span id="themeLabel">Dark mode</span>
+  </div>
+</header>
+
+<div class="main">
+
+  <div class="panel">
+    <div class="panel-title"><span class="num">1</span>Station &amp; date range</div>
+    <div class="row" style="margin-bottom:8px;">
+      <div class="field" style="max-width:150px;">
+        <label>Station abbreviation</label>
+        <input type="text" id="abbrev" placeholder="e.g. PLAKERCO" oninput="this.value=this.value.toUpperCase()"/>
+      </div>
+      <div class="field" style="max-width:260px;">
+        <label>API key <span id="apikeyHint" style="font-size:10px;color:var(--text-hint);cursor:pointer;" onclick="clearSavedKey()" title="Click to forget saved key"></span></label>
+        <input type="password" id="apikey" placeholder="Paste key — saved locally" oninput="saveKey()"/>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field" style="max-width:145px;">
+        <label>Measurements from</label>
+        <input type="date" id="dateFrom" value="2026-01-01"/>
+      </div>
+      <div class="field" style="max-width:145px;">
+        <label>Measurements to</label>
+        <input type="date" id="dateTo" value="2026-05-03"/>
+      </div>
+      <button class="btn primary" id="fetchBtn" onclick="runAll()">Fetch all data →</button>
+    </div>
+    <div id="s1" class="status info">Enter station abbreviation and API key, then click Fetch.</div>
+    <div id="metaGrid" class="meta-grid" style="display:none;"></div>
+  </div>
+
+  <div class="panel" id="corrPanel" style="display:none;">
+    <div class="panel-title">
+      <span class="num">2</span>Correlation Plot
+      <button class="btn export" style="margin-left:auto;" onclick="exportPNG('corrChart','correlation')">↓ PNG</button>
+      <div class="band-select">
+        <label>±band</label>
+        <select id="bandPct" onchange="renderCorr()">
+          <option value="5" selected>5%</option>
+          <option value="8">8%</option>
+          <option value="10">10%</option>
+          <option value="12">12%</option>
+        </select>
+      </div>
+    </div>
+    <div class="range-bar">
+      <div class="field" style="min-width:80px;max-width:95px;"><label>Min (cfs)</label>
+        <input type="number" id="qMin" placeholder="auto" oninput="renderCorr()"/></div>
+      <div class="field" style="min-width:80px;max-width:95px;"><label>Max (cfs)</label>
+        <input type="number" id="qMax" placeholder="auto" oninput="renderCorr()"/></div>
+      <button class="btn small" onclick="resetCorrRange()">Reset</button>
+      <div class="toggles-row" style="margin-bottom:0;margin-left:8px;" id="corrToggles"></div>
+    </div>
+    <div class="chart-outer">
+      <div style="position:relative;width:680px;height:680px;">
+        <canvas id="corrChart" width="680" height="680" role="img" aria-label="Discharge correlation plot"></canvas>
+      </div>
+    </div>
+    <div class="legend-row" id="corrLegend"></div>
+  </div>
+
+  <div class="panel" id="shiftPanel" style="display:none;">
+    <div class="panel-title">
+      <span class="num">3</span>Stage-Shift Plot
+      <button class="btn export" style="margin-left:auto;margin-right:6px;" onclick="exportPNG('shiftChart','stage-shift')">↓ PNG</button>
+      <button class="btn export" onclick="exportCSV()">↓ CSV</button>
+    </div>
+    <div class="range-bar">
+      <div class="field" style="min-width:72px;max-width:88px;"><label>Shift min (ft)</label>
+        <input type="number" id="sxMin" value="-0.25" step="0.01" oninput="renderShiftScatter()"/></div>
+      <div class="field" style="min-width:72px;max-width:88px;"><label>Shift max (ft)</label>
+        <input type="number" id="sxMax" value="0.25" step="0.01" oninput="renderShiftScatter()"/></div>
+      <div class="field" style="min-width:72px;max-width:88px;"><label>Stage min (ft)</label>
+        <input type="number" id="syMin" placeholder="auto" step="0.01" oninput="renderShiftScatter()"/></div>
+      <div class="field" style="min-width:72px;max-width:88px;"><label>Stage max (ft)</label>
+        <input type="number" id="syMax" placeholder="auto" step="0.01" oninput="renderShiftScatter()"/></div>
+      <button class="btn small" onclick="resetShiftRange()">Reset</button>
+      <button class="btn small" style="margin-left:4px;" onclick="toggleAll()">Toggle all</button>
+      <div style="display:flex;gap:10px;margin-left:8px;align-items:center;flex-wrap:wrap;">
+        <label class="ti" id="inuseShiftToggleWrap" style="display:none;">
+          <input type="checkbox" id="chkInuseShift" checked onchange="renderShiftScatter()">
+          <span style="display:inline-block;width:16px;height:0;border-top:2px dashed #e67e22;background:none;flex-shrink:0;"></span>
+          In-use shift
+        </label>
+        <label class="ti" id="inuseRelationToggleWrap" style="display:none;">
+          <input type="checkbox" id="chkInuseRelation" checked onchange="renderShiftScatter()">
+          <span style="display:inline-block;width:16px;height:3px;background:#e67e22;border-radius:1px;flex-shrink:0;"></span>
+          Current in-use VST
+        </label>
+      </div>
+    </div>
+    <!-- Stage-shift line input: 3 groups x 3 pairs, vertical layout -->
+    <div class="range-bar" style="align-items:flex-start;gap:10px;flex-wrap:wrap;">
+      <div style="display:flex;flex-direction:column;gap:4px;justify-content:flex-end;padding-bottom:2px;">
+        <span style="font-size:11px;color:var(--text-muted);font-weight:500;white-space:nowrap;">Shift lines</span>
+        <button class="btn small" onclick="clearAllShiftLines()" style="margin-top:2px;">Clear all</button>
+      </div>
+      <div class="sl-groups">
+        <div class="sl-group">
+          <div class="sl-group-title"><span class="sl-color-swatch" style="background:#C0392B;"></span>VST-1</div>
+          <div class="sl-pair-row"><span class="sl-pair-label">Pair 1</span>
+            <input type="number" id="sl1_1s" placeholder="Stage" step="0.01" oninput="renderShiftScatter()"/>
+            <input type="number" id="sl1_1v" placeholder="Shift" step="0.01" oninput="renderShiftScatter()"/>
+          </div>
+          <div class="sl-pair-row"><span class="sl-pair-label">Pair 2</span>
+            <input type="number" id="sl1_2s" placeholder="Stage" step="0.01" oninput="renderShiftScatter()"/>
+            <input type="number" id="sl1_2v" placeholder="Shift" step="0.01" oninput="renderShiftScatter()"/>
+          </div>
+          <div class="sl-pair-row"><span class="sl-pair-label">Pair 3</span>
+            <input type="number" id="sl1_3s" placeholder="Stage" step="0.01" oninput="renderShiftScatter()"/>
+            <input type="number" id="sl1_3v" placeholder="Shift" step="0.01" oninput="renderShiftScatter()"/>
+          </div>
+        </div>
+        <div class="sl-group">
+          <div class="sl-group-title"><span class="sl-color-swatch" style="background:#1a5fa8;"></span>VST-2</div>
+          <div class="sl-pair-row"><span class="sl-pair-label">Pair 1</span>
+            <input type="number" id="sl2_1s" placeholder="Stage" step="0.01" oninput="renderShiftScatter()"/>
+            <input type="number" id="sl2_1v" placeholder="Shift" step="0.01" oninput="renderShiftScatter()"/>
+          </div>
+          <div class="sl-pair-row"><span class="sl-pair-label">Pair 2</span>
+            <input type="number" id="sl2_2s" placeholder="Stage" step="0.01" oninput="renderShiftScatter()"/>
+            <input type="number" id="sl2_2v" placeholder="Shift" step="0.01" oninput="renderShiftScatter()"/>
+          </div>
+          <div class="sl-pair-row"><span class="sl-pair-label">Pair 3</span>
+            <input type="number" id="sl2_3s" placeholder="Stage" step="0.01" oninput="renderShiftScatter()"/>
+            <input type="number" id="sl2_3v" placeholder="Shift" step="0.01" oninput="renderShiftScatter()"/>
+          </div>
+        </div>
+        <div class="sl-group">
+          <div class="sl-group-title"><span class="sl-color-swatch" style="background:#7F77DD;"></span>VST-3</div>
+          <div class="sl-pair-row"><span class="sl-pair-label">Pair 1</span>
+            <input type="number" id="sl3_1s" placeholder="Stage" step="0.01" oninput="renderShiftScatter()"/>
+            <input type="number" id="sl3_1v" placeholder="Shift" step="0.01" oninput="renderShiftScatter()"/>
+          </div>
+          <div class="sl-pair-row"><span class="sl-pair-label">Pair 2</span>
+            <input type="number" id="sl3_2s" placeholder="Stage" step="0.01" oninput="renderShiftScatter()"/>
+            <input type="number" id="sl3_2v" placeholder="Shift" step="0.01" oninput="renderShiftScatter()"/>
+          </div>
+          <div class="sl-pair-row"><span class="sl-pair-label">Pair 3</span>
+            <input type="number" id="sl3_3s" placeholder="Stage" step="0.01" oninput="renderShiftScatter()"/>
+            <input type="number" id="sl3_3v" placeholder="Shift" step="0.01" oninput="renderShiftScatter()"/>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="side-layout">
+      <div class="side-table">
+        <table class="meas-table">
+          <thead><tr>
+            <th style="width:26px;">Plt</th>
+            <th style="width:38px;">#</th>
+            <th style="width:76px;">Date</th>
+            <th style="width:50px;">Stage</th>
+            <th style="width:54px;">Meas Q</th>
+            <th style="width:52px;">Comp Shift</th>
+            <th style="width:50px;">Appl Shift</th>
+            <th style="width:52px;">S_Error%</th>
+            <th style="width:52px;">R_Error%</th>
+            <th style="width:44px;">Rtg</th>
+          </tr></thead>
+          <tbody id="measTbody"></tbody>
+        </table>
+      </div>
+      <div style="flex-shrink:0;margin-left:auto;">
+        <div id="shiftWrap" style="position:relative;width:580px;height:680px;">
+          <canvas id="shiftChart" width="580" height="680" role="img" aria-label="Stage vs shift scatter"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel 4: Discharge Time Series -->
+  <div class="panel" id="tsPanel" style="display:none;">
+    <div class="panel-title">
+      <span class="num">4</span>Discharge time series
+      <button class="btn export" style="margin-left:auto;margin-right:6px;" onclick="exportPNG('tsChart','time-series')">↓ PNG</button>
+      <div class="band-select" style="margin-left:auto;">
+        <label>±band</label>
+        <select id="tsBandPct" onchange="renderTS()">
+          <option value="5">5%</option>
+          <option value="8">8%</option>
+          <option value="10" selected>10%</option>
+          <option value="12">12%</option>
+        </select>
+      </div>
+    </div>
+    <div class="range-bar" style="align-items:flex-end;">
+      <div class="field" style="max-width:145px;">
+        <label>Start date</label>
+        <input type="date" id="tsFrom"/>
+      </div>
+      <div class="field" style="max-width:145px;">
+        <label>End date</label>
+        <input type="date" id="tsTo"/>
+      </div>
+      <button class="btn small" onclick="fetchAndRenderTS()">Fetch time series →</button>
+      <div id="tsStatus" style="font-size:11px;color:var(--text-muted);margin-left:4px;align-self:center;"></div>
+      <div style="width:1px;height:28px;background:var(--border-strong);margin:0 4px;flex-shrink:0;"></div>
+      <div class="field" style="min-width:110px;max-width:130px;">
+        <label>X start (date)</label>
+        <input type="date" id="tsXMin" placeholder="auto" oninput="renderTS()"/>
+      </div>
+      <div class="field" style="min-width:110px;max-width:130px;">
+        <label>X end (date)</label>
+        <input type="date" id="tsXMax" placeholder="auto" oninput="renderTS()"/>
+      </div>
+      <div class="field" style="min-width:72px;max-width:88px;">
+        <label>Q min (cfs)</label>
+        <input type="number" id="tsYMin" placeholder="auto" step="10" oninput="renderTS()"/>
+      </div>
+      <div class="field" style="min-width:72px;max-width:88px;">
+        <label>Q max (cfs)</label>
+        <input type="number" id="tsYMax" placeholder="auto" step="10" oninput="renderTS()"/>
+      </div>
+      <button class="btn small" onclick="resetTSRange()">Reset</button>
+      <div style="margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap;" id="tsToggles"></div>
+    </div>
+    <div class="range-bar" style="align-items:flex-end;">
+      <div class="field" style="max-width:150px;"><label>Station 2 abbrev</label>
+        <input type="text" id="tsAbbrev2" placeholder="optional" oninput="this.value=this.value.toUpperCase()"/>
+      </div>
+      <button class="btn small" onclick="fetchTS2()">Fetch station 2 →</button>
+      <div id="tsStatus2" style="font-size:11px;color:var(--text-muted);margin-left:4px;align-self:center;"></div>
+      <button class="btn small" style="margin-left:6px;" onclick="clearTS2()">Clear</button>
+      <div style="width:1px;height:28px;background:var(--border-strong);margin:0 6px;flex-shrink:0;"></div>
+      <div class="field" style="min-width:72px;max-width:88px;"><label>Y2 min (cfs)</label>
+        <input type="number" id="tsY2Min" placeholder="auto" step="10" oninput="renderTS()"/></div>
+      <div class="field" style="min-width:72px;max-width:88px;"><label>Y2 max (cfs)</label>
+        <input type="number" id="tsY2Max" placeholder="auto" step="10" oninput="renderTS()"/></div>
+    </div>
+    <div style="overflow-x:auto;">
+      <div id="tsWrap" style="position:relative;width:1100px;height:360px;">
+        <canvas id="tsChart" width="1100" height="360" role="img" aria-label="Discharge time series"></canvas>
+      </div>
+    </div>
+    <div class="legend-row" id="tsLegend"></div>
+  </div>
+  <!-- Panel 5: Stage–Discharge Relation (log/log) -->
+  <div class="panel" id="ratingPanel" style="display:none;">
+    <div class="panel-title">
+      <span class="num">5</span>Stage–Discharge Relation
+      <button class="btn export" style="margin-left:auto;" onclick="exportPNG('ratingChart','stage-discharge')">↓ PNG</button>
+    </div>
+    <div class="range-bar">
+      <div class="field" style="min-width:80px;max-width:100px;"><label>Q min (cfs)</label>
+        <input type="number" id="rqMin" placeholder="auto" step="1" oninput="renderRating()"/></div>
+      <div class="field" style="min-width:80px;max-width:100px;"><label>Q max (cfs)</label>
+        <input type="number" id="rqMax" placeholder="auto" step="1" oninput="renderRating()"/></div>
+      <div class="field" style="min-width:72px;max-width:88px;"><label>Stage min (ft)</label>
+        <input type="number" id="rsMin" placeholder="auto" step="0.1" oninput="renderRating()"/></div>
+      <div class="field" style="min-width:72px;max-width:88px;"><label>Stage max (ft)</label>
+        <input type="number" id="rsMax" placeholder="auto" step="0.1" oninput="renderRating()"/></div>
+      <button class="btn small" onclick="resetRatingRange()">Reset</button>
+      <div class="toggles-row" style="margin-bottom:0;margin-left:8px;" id="ratingToggles"></div>
+    </div>
+    <div style="overflow-x:auto;">
+      <div id="ratingWrap" style="position:relative;height:680px;">
+        <canvas id="ratingChart" height="680" role="img" aria-label="Stage–discharge rating curve"></canvas>
+      </div>
+    </div>
+    <div class="legend-row" id="ratingLegend"></div>
+  </div>
+
+</div>
+
+<script>
+/*
+================================================================================
+  CDWR SHIFT ANALYZER — ver. 1.4.0                              MILESTONE BUILD
+  Colorado Division of Water Resources · CDSS Telemetry Station Analysis
+  File: dwr_tool_v16.html
+  Status: Soft production release — deployed via GitHub Pages
+================================================================================
+
+DEPLOYMENT
+  Standalone .html — open in any browser, no server required.
+  PWA: manifest + service worker injected as blob URLs at runtime.
+  Host: rename to index.html, push to GitHub repo, enable Pages (main/root).
+  Mobile: Safari/Chrome → Add to Home Screen (landscape orientation).
+  API key stored in localStorage key cdwr_apikey. Never goes in URL.
+
+API BASE URL
+  https://dwr.state.co.us/Rest/GET/api/v2/telemetrystations/
+
+API CALL CHAIN  (sequential; variables passed forward)
+  Call 1  telemetrydecodesettings  — no fields filter, read all returned fields
+          Reads: rating_table_name, shift_curve_name, current_shift, parameter
+          currentShift null → variable shift (VST in use); numeric → static shift
+  Call 2  telemetryratingtable  (uses rating_table_name)
+          → S.baseTable [{stage,discharge}]  filtered q>0, sorted asc  ~846 pts
+  Call 3  telemetryshiftcurve  (uses shift_curve_name; only when currentShift===null)
+          → S.shiftCurve [{stage,shift}]  sorted asc  3-10 pts
+  Call 4  telemetryshiftadjustedratingtable  (uses abbrev + parameter)
+          → S.shiftAdjTable [{stage,discharge}]  ~1339 pts
+  Call 5  telemetrydischargemeasurement  (uses abbrev + measurement date range)
+          → S.measurements [{measNo, date, gageHeight, discharge, shiftAdj}]
+  Call 6  telemetrytimeseriesraw  (Panel 4 Fetch time series button)
+          → S_ts.rawPts [{t:Date, q:number}]
+          Post-process: null sentinels at gaps >30 min to break the line
+  Call 6b telemetrytimeseriesraw  (Panel 4 Fetch station 2 button)
+          Auto-detects parameter via metadata call first
+          → S_ts2.rawPts [{t:Date, q:number}]  S_ts2.abbrev
+
+STATE OBJECTS
+  S           ratingTableName, shiftCurveName, currentShift, parameter,
+              baseTable, shiftAdjTable, shiftCurve, measurements
+  S_ts        Primary TS: {rawPts:[]}
+  S_ts2       Secondary TS: {rawPts:[], abbrev:null}
+  measPlotted Set<measNo> of plotted measurements (String keys)
+  measRating  Map<measNo, G|F|P> per-measurement rating (default G)
+  autoQ       {min,max} computed from measurement Q plus/minus 25%
+  autoShift   {xMin,xMax,yMin,yMax} from measurement shift and stage range
+
+KEY FUNCTIONS
+  interp(table, stage)          linear interp discharge from stage
+  interpInverse(Q)              inverts base table: discharge to stage
+  ratingPct(rtg)                G->0.05  F->0.08  P->0.12
+  shiftErrorBars(h, Q, rtg)     horizontal shift error bars on stage-shift plot
+                                  delta = interpInverse(Q*(1+/-pct)) - h
+  getShiftLineGroups()          reads sl{g}_{p}s/v inputs, returns 3 groups
+  buildShiftLineDataset()       Chart.js dataset for one shift line group
+                                  with flat extension beyond defined pairs
+  logMinorTicks(mn, mx)         tick values at 1x-9x each decade for log axes
+  rv(id, fallback)              parse float from input; fallback if not finite
+  ck(id)                        checkbox checked state; true if element missing
+  labelColor(varName)           read CSS variable at render time (theme-aware)
+
+PANELS
+  Panel 1  Station and date range
+           Station field blank by default (production safe, no prepopulated value)
+           API key: saved to localStorage on input, restored on page load
+           Clicking the saved hint clears the stored key
+           Enter key in any field triggers runAll()
+
+  Panel 2  Correlation Plot  680x680px  scatter
+           X: shift-adjusted Q  Y: base rating Q
+           Band: +/-5% default; two type:line datasets with fill:1
+             NOT fill:+1 which is broken in scatter-type charts
+           Series: Base Rating (dashed gray), In-use shift curve (green),
+                   +/-band (green fill), field measurements (coral)
+           Measurements: horizontal error bars at +/-G/F/P% of discharge
+           Export: PNG
+
+  Panel 3  Stage-Shift Plot  680x680px  scatter
+           X: shift (ft)  Y: stage (ft)
+           PRIMARY MARKERS (filled purple): plotted at COMPUTED SHIFT
+             computed shift = interpInverse(Qm) - gageHeight
+             error bars from shiftErrorBars() reflect measurement accuracy
+           SECONDARY MARKERS (hollow purple): plotted at APPLIED SHIFT (m.shiftAdj)
+             only rendered when |applied - computed| > 0.001 ft
+             no error bars, no labels; shows where station shift is currently set
+           In-use static shift: vertical dashed orange line at x=currentShift
+           Current in-use VST: orange line from S.shiftCurve (extended to axis)
+           VST-1/2/3: user-defined shift lines (red/blue/purple)
+             3 groups x 3 stage/shift pairs; flat extension beyond defined range
+           Table columns: Plt | # | Date | Stage | Meas Q | Comp Shift |
+                          Appl Shift | S_Error% | R_Error% | Rtg
+           Export: PNG  CSV
+
+  Panel 4  Discharge Time Series  1100x420px  scatter
+           X: ms timestamps as linear numeric (no date adapter needed)
+           Tick positions: day-boundary ms values injected via afterBuildTicks
+           TS start date defaults to today-14 days (computed at page load)
+           Primary station: steel blue line, left Y axis, +/-10% band
+           Station 2 (optional): amber line, right Y2 axis, no band
+             Y2 scale only added to Chart.js config when hasS2 && showS2
+             If Y2 scale defined but not used (or vice versa) chart goes blank
+           Line gaps: null sentinels where gap >30 min; spanGaps:false breaks line
+           Tooltips disabled on TS (data is too dense to be useful)
+           Export: PNG
+
+  Panel 5  Stage-Discharge Relation  full-width x 680px  log/log scatter
+           Both X and Y axes logarithmic
+           Minor grid lines at 1x through 9x each decade via logMinorTicks()
+           Canvas width computed at render: max(900, panelClientWidth-48)
+           User shift line curves projected as rating curves (VST-1/2/3):
+             For each base table stage:
+             Q = interp(baseTable, stage + interpShiftForPairs(pairs, stage))
+           VST-1/2/3 toggles default to OFF
+           Re-renders whenever shift scatter re-renders (shift line inputs)
+           Export: PNG
+
+MEASUREMENT TABLE COLUMNS DETAIL
+  Comp Shift   interpInverse(Qm) - gageHeight  [ft]
+               The shift the base rating would need to produce Qm at this stage
+               Used for primary marker position on stage-shift plot
+  Appl Shift   shiftAdjustment from DWR API  [ft]
+               The shift the station is currently applying
+               Used for hollow secondary marker on stage-shift plot
+  S_Error%     ((Qt_comp - Qt_appl) / Qt_appl) * 100
+               Qt_comp = interp(baseTable, h + compShift)
+               Qt_appl = interp(baseTable, h + applShift)
+               0% when both shifts equal; reflects shift disagreement
+  R_Error%     ((Qm - Qt_base) / Qt_base) * 100
+               Qt_base = interp(baseTable, gageHeight)
+               Error relative to unshifted base rating
+  Rtg          G/F/P drives error bar width: G=5%  F=8%  P=12%
+  Color coding: >10% red  >5% amber  <=5% gray (applied to both error columns)
+
+CHART.JS CRITICAL LESSONS (do not repeat these mistakes)
+  fill:'+1'      BROKEN in scatter-type charts.
+                 Fix: use fill:1 (absolute dataset index) with type:line datasets.
+  yAxisID        Only set on datasets when the named scale EXISTS in config.
+                 Use conditional spread: ...(condition ? {y2:{...}} : {})
+  Duplicate let  Same-scope duplicate let = SyntaxError = ALL charts blank silently.
+                 Always check: grep "^let " | sort | uniq -d before shipping.
+  measNo type    Normalize to String at parse: String(r.measNo).
+                 Set.has() uses strict equality; number vs string = never plotted.
+  Log scale      Every value must be >0. safeLog() = Math.max(0.001, v).
+                 Return empty string from tick callback to draw grid without label.
+  Destroy order  destroy() then Chart.getChart() safety then getContext('2d').
+  TS null gaps   Post-process rawPts: insert {t:null,q:null} at gaps >30 min.
+                 toMs() must return null for sentinels. spanGaps:false on dataset.
+  Function scope Never declare named function inside another function in strict mode.
+                 logMinorTicks() must be module-scope, not inside renderRating().
+  Band fill      Two type:line datasets. band_hi at index N with fill:N+1 (the lo).
+                 band_lo with fill:false. Both must be type:line for Filler plugin.
+
+LABEL PLUGIN (measLabels)
+  Push-apart: MIN_GAP=18px, MAX_ITER=30, INIT_OFFSET=14px, LEADER_THRESH=2px
+  Sort labels by y before push-apart (top to bottom convergence)
+  Leader lines drawn when label moved more than 2px from natural position
+  Leader: dashed 2px, 60% opacity; label text: full opacity
+
+REGISTERED PLUGINS
+  labelPlugin    afterDatasetsDraw: push-apart labels with leader lines
+  zeroLinePlugin afterDatasetsDraw: vertical zero line on shift scatter
+  errorBarPlugin afterDatasetsDraw: horizontal (xLo/xHi) or vertical (yLo/yHi)
+
+DARK MODE
+  Toggle via data-theme=dark on html element.
+  CSS variables in :root (light) and [data-theme=dark].
+  AX() GRID() TK() are arrow functions reading CSS vars at call time.
+  Panel number badges use var(--blue) for visibility in both modes.
+  Theme toggle re-renders all active chart instances.
+
+EXPORT
+  PNG  exportPNG(canvasId, name)
+       34px title strip added above chart: station abbrev + panel name + date.
+       Offscreen canvas composites background correctly for light/dark mode.
+  CSV  exportCSV()
+       Columns: Meas#, Date, Stage_ft, MeasQ_cfs, CompShift_ft,
+                ApplShift_ft, S_Error%, R_Error%, Rating
+
+PWA
+  Manifest as blob URL, no separate file needed.
+  Service worker caches Chart.js CDN asset for offline use.
+  DWR API always network-only (live data must be fresh).
+  Requires HTTPS or localhost for service worker registration.
+
+SERIES COLORS
+  Base rating        #888780  dashed gray
+  In-use shift       #1D9E75  green
+  Band fill          rgba(29,158,117,0.12)
+  Field measurements #D85A30  coral (filled) or transparent (hollow applied shift)
+  Computed shift     #7F77DD  purple filled
+  Applied shift      #7F77DD  purple hollow (no fill)
+  VST lines          #C0392B red  #1a5fa8 blue  #7F77DD purple
+  In-use VST/shift   #e67e22  orange
+  TS primary         #2980b9  steel blue
+  TS station 2       #c8820a  amber
+
+PLANNED FUTURE WORK
+  Plot D: Discharge and shift over time (dual Y axis, vertical event bars)
+  Multi-station overlay on stage-discharge relation (Panel 5)
+  Separate station abbreviation fields for rating vs measurement stations
+================================================================================
+*/
+const DWR = 'https://dwr.state.co.us/Rest/GET/api/v2/telemetrystations/';
+let S = { ratingTableName: null, shiftCurveName: null, currentShift: null, parameter: 'DISCHRG', baseTable: [], shiftAdjTable: [], shiftCurve: [], measurements: [] };
+let corrChart = null, shiftChart = null;
+let measPlotted = new Set();
+let measRating = new Map(); // measNo -> 'G'|'F'|'P'
+let autoQ = { min: 1, max: 1000 };
+let autoShift = { xMin: -0.5, xMax: 0.5, yMin: 1, yMax: 5 };
+
+const AX   = () => getComputedStyle(document.documentElement).getPropertyValue('--axis').trim()   || '#2c2a26';
+const GRID = () => getComputedStyle(document.documentElement).getPropertyValue('--grid').trim()   || 'rgba(0,0,0,0.07)';
+const TK   = () => getComputedStyle(document.documentElement).getPropertyValue('--tick').trim()   || '#5a5850';
+
+function toggleTheme() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('themeLabel').textContent = isDark ? 'Dark mode' : 'Light mode';
+  // Re-render all active charts so canvas colors update
+  if (corrChart)  renderCorr();
+  if (shiftChart) renderShiftScatter();
+  if (tsChart)    renderTS();
+  if (ratingChart) renderRating();
+}
+
+function key() { return document.getElementById('apikey').value.trim(); }
+function abbr() { return document.getElementById('abbrev').value.trim().toUpperCase(); }
+function fmtDate(id) {
+  const d = document.getElementById(id).value;
+  if (!d) return null;
+  const [y, m, day] = d.split('-');
+  return `${m}%2F${day}%2F${y}`;
+}
+function setStatus(msg, type) {
+  const e = document.getElementById('s1');
+  e.textContent = msg;
+  e.className = 'status ' + type;
+}
+async function apiFetch(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error('HTTP ' + r.status + ': ' + r.statusText);
+  return r.json();
+}
+function rv(id, fb) { const v = parseFloat(document.getElementById(id).value); return isFinite(v) ? v : fb; }
+function labelColor(varName) {
+  return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+}
+function resetCorrRange() { ['qMin', 'qMax'].forEach(id => document.getElementById(id).value = ''); renderCorr(); }
+function resetShiftRange() {
+  document.getElementById('sxMin').value = '-0.25';
+  document.getElementById('sxMax').value = '0.25';
+  ['syMin', 'syMax'].forEach(id => document.getElementById(id).value = '');
+  renderShiftScatter();
+}
+function resetTSRange() {
+  ['tsXMin', 'tsXMax', 'tsYMin', 'tsYMax'].forEach(id => document.getElementById(id).value = '');
+  renderTS();
+}
+
+async function runAll() {
+  const btn = document.getElementById('fetchBtn');
+  btn.disabled = true;
+  setStatus('Fetching station metadata…', 'info');
+  try {
+    const meta = await apiFetch(DWR + 'telemetrydecodesettings/?format=json'
+      + '&abbrev=' + encodeURIComponent(abbr()) + '&apiKey=' + encodeURIComponent(key()));
+    if (!meta.ResultList?.length) throw new Error('No results for "' + abbr() + '"');
+    const r = meta.ResultList[0];
+    S.ratingTableName = r.rating_table_name || r.ratingTableName || null;
+    S.shiftCurveName = r.shift_curve_name || r.shiftCurveName || null;
+    S.currentShift = (r.current_shift != null && r.current_shift !== '') ? parseFloat(r.current_shift)
+                   : (r.currentShift != null && r.currentShift !== '') ? parseFloat(r.currentShift) : null;
+    S.parameter = r.parameter || 'DISCHRG';
+    const mg = document.getElementById('metaGrid');
+    mg.innerHTML = `
+      <div class="mc"><div class="mk">Rating table</div><div class="mv">${S.ratingTableName || '—'}</div></div>
+      <div class="mc"><div class="mk">Parameter</div><div class="mv">${S.parameter}</div></div>
+      <div class="mc"><div class="mk">Current shift</div><div class="mv">${S.currentShift == null ? 'Variable' : S.currentShift.toFixed(2) + ' ft'}</div></div>`;
+    mg.style.display = 'grid';
+
+    setStatus('Loading base rating table…', 'info');
+    const rt = await apiFetch(DWR + 'telemetryratingtable/?format=json&fields=ratingTableName%2CX%2CY'
+      + '&ratingTableName=' + encodeURIComponent(S.ratingTableName) + '&apiKey=' + encodeURIComponent(key()));
+    if (!rt.ResultList?.length) throw new Error('Rating table empty');
+    S.baseTable = rt.ResultList.map(r => ({ stage: +r.X, discharge: +r.Y }))
+      .filter(p => isFinite(p.stage) && isFinite(p.discharge) && p.discharge > 0)
+      .sort((a, b) => a.stage - b.stage);
+
+    // Call 3: shift curve (used when currentShift is null / variable)
+    S.shiftCurve = [];
+    if (S.shiftCurveName) {
+      setStatus('Loading shift curve…', 'info');
+      try {
+        const sc = await apiFetch(DWR + 'telemetryshiftcurve/?format=json&fields=shiftCurveName%2CX%2CY'
+          + '&shiftCurveName=' + encodeURIComponent(S.shiftCurveName) + '&apiKey=' + encodeURIComponent(key()));
+        S.shiftCurve = (sc.ResultList || []).map(r => ({ stage: +r.X, shift: +r.Y }))
+          .filter(p => isFinite(p.stage) && isFinite(p.shift))
+          .sort((a, b) => a.stage - b.stage);
+      } catch (e) { console.warn('Shift curve:', e.message); }
+    }
+
+    setStatus('Loading shift-adjusted rating table…', 'info');
+    const sa = await apiFetch(DWR + 'telemetryshiftadjustedratingtable/?format=json&fields=X%2CY'
+      + '&abbrev=' + encodeURIComponent(abbr()) + '&parameter=' + encodeURIComponent(S.parameter)
+      + '&apiKey=' + encodeURIComponent(key()));
+    if (!sa.ResultList?.length) throw new Error('Shift-adjusted table empty');
+    S.shiftAdjTable = sa.ResultList.map(r => ({ stage: +r.X, discharge: +r.Y }))
+      .filter(p => isFinite(p.stage) && isFinite(p.discharge) && p.discharge > 0)
+      .sort((a, b) => a.stage - b.stage);
+
+    S.measurements = [];
+    const df = fmtDate('dateFrom'), dt = fmtDate('dateTo');
+    if (df && dt) {
+      setStatus('Loading discharge measurements…', 'info');
+      try {
+        const dm = await apiFetch(DWR + 'telemetrydischargemeasurement/?format=json&dateFormat=spaceSepToMinutes'
+          + '&fields=measNo%2CmeasDateTime%2CgageHeight%2Cdischarge%2CshiftAdjustment'
+          + '&abbrev=' + encodeURIComponent(abbr())
+          + '&min-measDateTime=' + df + '&max-measDateTime=' + dt
+          + '&apiKey=' + encodeURIComponent(key()));
+        S.measurements = (dm.ResultList || []).map(r => ({
+          measNo: r.measNo, date: r.measDateTime,
+          gageHeight: +r.gageHeight, discharge: +r.discharge, shiftAdj: +r.shiftAdjustment
+        })).filter(r => r.discharge > 0 && r.gageHeight > 0 && isFinite(r.discharge) && isFinite(r.gageHeight));
+      } catch (e) { console.warn('Measurements:', e.message); }
+    }
+    measPlotted = new Set(S.measurements.map(m => m.measNo));
+    // Initialize all measurements to 'G' (Good) rating
+    measRating = new Map(S.measurements.map(m => [m.measNo, 'G']));
+    computeAutoRanges();
+
+    setStatus('Loaded: ' + S.baseTable.length + ' base pts | ' + S.shiftAdjTable.length + ' shift-adj pts'
+      + (S.measurements.length ? ' | ' + S.measurements.length + ' measurements' : ' | no measurements in date range')
+      + (S.shiftCurve.length ? ' | shift curve (' + S.shiftCurve.length + ' pts)' : ''), 'ok');
+
+    // Show/hide in-use shift toggles
+    document.getElementById('inuseShiftToggleWrap').style.display = (S.currentShift != null) ? 'flex' : 'none';
+    document.getElementById('inuseRelationToggleWrap').style.display = S.shiftCurve.length ? 'flex' : 'none';
+
+    document.getElementById('corrPanel').style.display = 'block';
+    buildCorrToggles();
+    renderCorr();
+
+    if (S.measurements.length) {
+      document.getElementById('shiftPanel').style.display = 'block';
+      buildMeasTable();
+      renderShiftScatter();
+    }
+
+    document.getElementById('ratingPanel').style.display = 'block';
+    buildRatingToggles();
+    renderRating();
+
+    // Show time series panel
+    document.getElementById('tsPanel').style.display = 'block';
+    buildTSToggles();
+    lastFetchedAbbr = abbr();
+  } catch (e) {
+    setStatus('Error: ' + e.message, 'err');
+    console.error(e);
+  }
+  btn.disabled = false;
+}
+
+function interp(table, stage) {
+  if (!table.length || isNaN(stage)) return NaN;
+  if (stage <= table[0].stage) return table[0].discharge;
+  if (stage >= table[table.length - 1].stage) return table[table.length - 1].discharge;
+  for (let i = 0; i < table.length - 1; i++) {
+    if (stage >= table[i].stage && stage <= table[i + 1].stage) {
+      const t = (stage - table[i].stage) / (table[i + 1].stage - table[i].stage);
+      return table[i].discharge + t * (table[i + 1].discharge - table[i].discharge);
+    }
+  }
+  return NaN;
+}
+
+// Invert the base rating table: given target discharge Q, return stage
+// The base table is monotonically increasing in both stage and discharge
+function interpInverse(Q) {
+  const t = S.baseTable;
+  if (!t.length || isNaN(Q)) return NaN;
+  if (Q <= t[0].discharge) return t[0].stage;
+  if (Q >= t[t.length - 1].discharge) return t[t.length - 1].stage;
+  for (let i = 0; i < t.length - 1; i++) {
+    if (Q >= t[i].discharge && Q <= t[i + 1].discharge) {
+      const frac = (Q - t[i].discharge) / (t[i + 1].discharge - t[i].discharge);
+      return t[i].stage + frac * (t[i + 1].stage - t[i].stage);
+    }
+  }
+  return NaN;
+}
+
+// Rating label -> error fraction
+function ratingPct(rtg) {
+  return rtg === 'F' ? 0.08 : rtg === 'P' ? 0.12 : 0.05; // G=5%
+}
+
+// For a measurement at (stage h, discharge Q_meas), compute the shift error bars
+// on the stage-shift plot. The shift is δ such that Q_rating(h+δ) = Q_meas.
+// Error bar: find δ for Q_meas*(1±pct). Return {shiftLo, shiftHi}.
+function shiftErrorBars(h, Q_meas, rtg) {
+  const pct = ratingPct(rtg);
+  const Q_hi = Q_meas * (1 + pct);
+  const Q_lo = Q_meas * (1 - pct);
+  const stageHi = interpInverse(Q_hi); // stage on base curve for Q_hi
+  const stageLo = interpInverse(Q_lo);
+  // shift = stage_on_base_curve - h (because rating(h+δ) = Q means h+δ = stageOnCurve)
+  const shiftHi = isFinite(stageHi) ? stageHi - h : NaN;
+  const shiftLo = isFinite(stageLo) ? stageLo - h : NaN;
+  return { shiftLo, shiftHi };
+}
+
+function computeAutoRanges() {
+  // Correlation plot: base on measurement Q ±25% if measurements exist, else curve range
+  if (S.measurements.length) {
+    const measQ = S.measurements.map(m => m.discharge).filter(q => q > 0);
+    if (measQ.length) {
+      autoQ.min = Math.floor(Math.min(...measQ) * 0.75);
+      autoQ.max = Math.ceil(Math.max(...measQ) * 1.25);
+    }
+  } else {
+    const allQ = [];
+    S.shiftAdjTable.forEach(p => { const b = interp(S.baseTable, p.stage); if (isFinite(b) && p.discharge > 0) { allQ.push(p.discharge, b); } });
+    if (allQ.length) { autoQ.min = Math.min(...allQ) * 0.9; autoQ.max = Math.max(...allQ) * 1.05; }
+  }
+  if (S.measurements.length) {
+    const shifts = S.measurements.map(m => m.shiftAdj).filter(isFinite);
+    const stages = S.measurements.map(m => m.gageHeight).filter(isFinite);
+    if (shifts.length) {
+      const span = Math.max(0.05, Math.max(...shifts) - Math.min(...shifts));
+      autoShift.xMin = Math.min(...shifts) - span * 0.2;
+      autoShift.xMax = Math.max(...shifts) + span * 0.2;
+      if (autoShift.xMin > 0) autoShift.xMin = -span * 0.1;
+      if (autoShift.xMax < 0) autoShift.xMax = span * 0.1;
+    }
+    if (stages.length) {
+      const span = Math.max(0.1, Math.max(...stages) - Math.min(...stages));
+      autoShift.yMin = Math.min(...stages) - span * 0.08;
+      autoShift.yMax = Math.max(...stages) + span * 0.08;
+    }
+  }
+}
+
+function ck(id) { const e = document.getElementById(id); return e ? e.checked : true; }
+
+function buildCorrToggles() {
+  const items = [
+    { id: 'chk11',   label: 'Base Rating',    color: '#888780', dash: true,  dot: false, band: false },
+    { id: 'chkSA',   label: 'Shift-adjusted', color: '#1D9E75', dash: false, dot: false, band: false },
+    { id: 'chkBand', label: '±band',           color: '#1D9E75', dash: false, dot: false, band: true  },
+    { id: 'chkMC',   label: 'Measurements',   color: '#D85A30', dash: false, dot: true,  band: false, hide: !S.measurements.length },
+  ];
+  document.getElementById('corrToggles').innerHTML = items.filter(i => !i.hide).map(i => `
+    <label class="ti">
+      <input type="checkbox" id="${i.id}" checked onchange="renderCorr()">
+      <span style="display:inline-block;flex-shrink:0;${i.dot ? 'width:8px;height:8px;border-radius:50%;background:' + i.color + ';' : i.band ? 'width:16px;height:6px;background:' + i.color + '22;border:1px dashed ' + i.color + ';border-radius:2px;' : i.dash ? 'width:16px;height:0;border-top:2px dashed ' + i.color + ';background:none;' : 'width:16px;height:3px;background:' + i.color + ';border-radius:1px;'}"></span>
+      ${i.label}
+    </label>`).join('');
+}
+
+const labelPlugin = {
+  id: 'measLabels',
+  afterDatasetsDraw(chart) {
+    const ctx = chart.ctx;
+    chart.data.datasets.forEach((ds, di) => {
+      if (!ds._showLabels) return;
+      const meta = chart.getDatasetMeta(di);
+      if (meta.hidden) return;
+
+      const color = ds._labelColor || getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#333';
+      const FONT = '500 10px "Trebuchet MS", Tahoma, Aptos, sans-serif';
+      const MIN_GAP = 18;   // minimum vertical px between label centres
+      const MAX_ITER = 30;  // push-apart iterations
+      const LEADER_THRESH = 2; // px moved before we draw a leader line
+      const INIT_OFFSET = 14; // initial px above point before push-apart
+
+      // Build initial label positions — anchor just above each point
+      const items = [];
+      meta.data.forEach((pt, i) => {
+        const raw = ds.data[i];
+        if (!raw || !raw.label) return;
+        items.push({ label: raw.label, px: pt.x, py: pt.y, ly: pt.y - INIT_OFFSET });
+      });
+      if (!items.length) return;
+
+      // Sort by y ascending so push-apart runs top-to-bottom
+      items.sort((a, b) => a.ly - b.ly);
+
+      // Iterative push-apart: nudge overlapping labels apart
+      for (let iter = 0; iter < MAX_ITER; iter++) {
+        let moved = false;
+        for (let i = 0; i < items.length - 1; i++) {
+          const a = items[i], b = items[i + 1];
+          const gap = b.ly - a.ly;
+          if (gap < MIN_GAP) {
+            const push = (MIN_GAP - gap) / 2 + 0.5;
+            a.ly -= push;
+            b.ly += push;
+            moved = true;
+          }
+        }
+        if (!moved) break;
+      }
+
+      ctx.save();
+      ctx.font = FONT;
+      ctx.fillStyle = color;
+      ctx.textAlign = 'center';
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 0.8;
+      ctx.globalAlpha = 0.6;
+
+      items.forEach(item => {
+        const dy = Math.abs(item.ly - (item.py - INIT_OFFSET));
+        if (dy > LEADER_THRESH) {
+          // Draw leader line from label to point
+          ctx.beginPath();
+          ctx.setLineDash([2, 2]);
+          ctx.moveTo(item.px, item.ly + 3);      // bottom of label
+          ctx.lineTo(item.px, item.py - 6);       // just above point
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      });
+
+      ctx.globalAlpha = 1;
+      items.forEach(item => {
+        ctx.fillText(item.label, item.px, item.ly);
+      });
+
+      ctx.restore();
+    });
+  }
+};
+
+const zeroLinePlugin = {
+  id: 'zeroLine',
+  afterDatasetsDraw(chart) {
+    if (!chart.config.options._drawZeroX) return;
+    const xScale = chart.scales.x;
+    if (!xScale) return;
+    const x = xScale.getPixelForValue(0);
+    const ctx = chart.ctx;
+    const { top, bottom } = chart.chartArea;
+    ctx.save();
+    ctx.beginPath();
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#1a1916';
+    ctx.lineWidth = 2.5;
+    ctx.moveTo(x, top);
+    ctx.lineTo(x, bottom);
+    ctx.stroke();
+    ctx.restore();
+  }
+};
+
+Chart.register(labelPlugin, zeroLinePlugin);
+
+// Error bar plugin — draws horizontal (corr) or vertical (shift) error bars
+// Each data point can have { xLo, xHi } for horizontal or { yLo, yHi } for vertical
+const errorBarPlugin = {
+  id: 'errorBars',
+  afterDatasetsDraw(chart) {
+    chart.data.datasets.forEach((ds, di) => {
+      if (!ds._errorBars) return;
+      const meta = chart.getDatasetMeta(di);
+      if (meta.hidden) return;
+      const ctx = chart.ctx;
+      ctx.save();
+      ctx.strokeStyle = ds._errorBarColor || '#888';
+      ctx.lineWidth = 1.5;
+      const capLen = 5;
+      meta.data.forEach((pt, i) => {
+        const raw = ds.data[i];
+        if (!raw) return;
+        if (ds._errorBars === 'horizontal' && isFinite(raw.xLo) && isFinite(raw.xHi)) {
+          const xLo = chart.scales.x.getPixelForValue(raw.xLo);
+          const xHi = chart.scales.x.getPixelForValue(raw.xHi);
+          const y = pt.y;
+          ctx.beginPath(); ctx.moveTo(xLo, y); ctx.lineTo(xHi, y); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(xLo, y - capLen); ctx.lineTo(xLo, y + capLen); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(xHi, y - capLen); ctx.lineTo(xHi, y + capLen); ctx.stroke();
+        }
+        if (ds._errorBars === 'vertical' && isFinite(raw.yLo) && isFinite(raw.yHi)) {
+          const yLo = chart.scales.y.getPixelForValue(raw.yLo);
+          const yHi = chart.scales.y.getPixelForValue(raw.yHi);
+          const x = pt.x;
+          ctx.beginPath(); ctx.moveTo(x, yLo); ctx.lineTo(x, yHi); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(x - capLen, yLo); ctx.lineTo(x + capLen, yLo); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(x - capLen, yHi); ctx.lineTo(x + capLen, yHi); ctx.stroke();
+        }
+      });
+      ctx.restore();
+    });
+  }
+};
+Chart.register(errorBarPlugin);
+
+function axisOpts(title, extraTicks) {
+  return {
+    type: 'linear',
+    border: { color: AX(), width: 2 },
+    title: { display: true, text: title, color: TK(), font: { size: 11, family: "'Trebuchet MS', Tahoma, Aptos, sans-serif" } },
+    grid: { color: GRID(), lineWidth: 1 },
+    ticks: { color: TK(), font: { size: 11, family: "'Trebuchet MS', Tahoma, Aptos, sans-serif" }, callback: v => v >= 1000 ? (v / 1000).toFixed(v % 1000 === 0 ? 0 : 1) + 'k' : v, ...(extraTicks || {}) }
+  };
+}
+
+function renderCorr() {
+  const canvas = document.getElementById('corrChart');
+  if (corrChart) { corrChart.destroy(); corrChart = null; }
+  const existing = Chart.getChart(canvas);
+  if (existing) existing.destroy();
+  const ctx = canvas.getContext('2d');
+  const pct = parseFloat(document.getElementById('bandPct').value) / 100;
+  const qMin = rv('qMin', autoQ.min), qMax = rv('qMax', autoQ.max);
+  const datasets = [];
+  const stages = S.baseTable.map(p => p.stage);
+  const minS = Math.min(...stages), maxS = Math.max(...stages), step = (maxS - minS) / 400;
+
+  if (ck('chkBand') && ck('chkSA')) {
+    const hi = [], lo = [];
+    for (let s = minS; s <= maxS; s += step) {
+      const sa = interp(S.shiftAdjTable, s), ba = interp(S.baseTable, s);
+      if (isFinite(sa) && isFinite(ba) && sa > 0 && ba > 0) {
+        hi.push({ x: sa, y: ba * (1 + pct) });
+        lo.push({ x: sa, y: ba * (1 - pct) });
+      }
+    }
+    // Insert band first so hi=index0, lo=index1 — fill:1 fills hi down to lo
+    datasets.push({ type: 'line', label: 'band_hi', data: hi, borderColor: 'transparent', backgroundColor: 'rgba(29,158,117,0.12)', borderWidth: 0, pointRadius: 0, tension: 0, fill: 1, order: 10 });
+    datasets.push({ type: 'line', label: 'band_lo', data: lo, borderColor: 'transparent', backgroundColor: 'transparent', borderWidth: 0, pointRadius: 0, tension: 0, fill: false, order: 11 });
+  }
+  if (ck('chk11')) {
+    const pts = S.baseTable.filter(p => p.discharge > 0).map(p => ({ x: p.discharge, y: p.discharge }));
+    datasets.push({ label: 'Base Rating', data: pts, borderColor: '#888780', backgroundColor: 'transparent', borderWidth: 1.5, borderDash: [5, 3], pointRadius: 0, showLine: true, tension: 0, fill: false, order: 3 });
+  }
+  if (ck('chkSA')) {
+    const pts = [];
+    for (let s = minS; s <= maxS; s += step) {
+      const sa = interp(S.shiftAdjTable, s), ba = interp(S.baseTable, s);
+      if (isFinite(sa) && isFinite(ba) && sa > 0 && ba > 0) pts.push({ x: sa, y: ba });
+    }
+    datasets.push({ label: 'Shift-adjusted', data: pts, borderColor: '#1D9E75', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 0, showLine: true, tension: 0, fill: false, order: 2 });
+  }
+  if (ck('chkMC')) {
+    const pts = S.measurements.filter(m => measPlotted.has(m.measNo) && m.discharge > 0).map(m => {
+      const bq = interp(S.baseTable, m.gageHeight);
+      const rtg = measRating.get(m.measNo) || 'G';
+      const p = ratingPct(rtg);
+      return { x: m.discharge, y: isFinite(bq) ? bq : m.discharge,
+               xLo: m.discharge * (1 - p), xHi: m.discharge * (1 + p),
+               label: String(m.measNo), measNo: m.measNo, date: m.date, gageHeight: m.gageHeight, shiftAdj: m.shiftAdj };
+    });
+    if (pts.length) datasets.push({ label: 'Field measurements', data: pts, type: 'scatter', borderColor: '#D85A30', backgroundColor: '#D85A30', borderWidth: 1.5, pointRadius: 4, pointHoverRadius: 6, showLine: false, fill: false, order: 1, _showLabels: true, _labelColor: labelColor('--label-coral'), _errorBars: 'horizontal', _errorBarColor: '#D85A30' });
+  }
+
+  corrChart = new Chart(ctx, {
+    type: 'scatter', data: { datasets },
+    options: {
+      responsive: false,
+      layout: { padding: { top: 20, right: 14, bottom: 4, left: 4 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const d = ctx.raw;
+              if (d.measNo !== undefined) return [`Meas #${d.measNo}`, d.date, `Stage: ${d.gageHeight.toFixed(2)} ft`, `Measured Q: ${d.x.toFixed(1)} cfs`, `Base Q: ${d.y.toFixed(1)} cfs`, `Shift: ${(+d.shiftAdj).toFixed(2)} ft`];
+              if (ctx.dataset.label?.startsWith('band')) return null;
+              return `Q_adj: ${d.x.toFixed(1)} | Q_base: ${d.y.toFixed(1)} cfs`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ...axisOpts('Discharge — shift-adjusted / measured (cfs)'), min: qMin, max: qMax },
+        y: { ...axisOpts('Discharge — base rating (cfs)'), min: qMin, max: qMax }
+      }
+    }
+  });
+
+  document.getElementById('corrLegend').innerHTML = ([
+    { label: 'Base Rating',         color: '#888780', dash: true,  dot: false, band: false, hide: !ck('chk11') },
+    { label: 'Shift-adjusted',   color: '#1D9E75', dash: false, dot: false, band: false, hide: !ck('chkSA') },
+    { label: `±${(pct * 100).toFixed(0)}% band`, color: '#1D9E75', dash: false, dot: false, band: true, hide: !ck('chkBand') || !ck('chkSA') },
+    { label: 'Field measurements', color: '#D85A30', dash: false, dot: true, band: false, hide: !ck('chkMC') },
+  ]).filter(i => !i.hide).map(i => {
+    const sw = i.dot ? `width:8px;height:8px;border-radius:50%;background:${i.color};`
+      : i.band ? `width:16px;height:6px;background:${i.color}22;border:1px dashed ${i.color};border-radius:2px;`
+      : i.dash ? `width:16px;height:0;border-top:2px dashed ${i.color};background:none;border-radius:0;`
+      : `width:16px;height:3px;background:${i.color};border-radius:1px;`;
+    return `<span><span style="${sw}display:inline-block;flex-shrink:0;"></span>${i.label}</span>`;
+  }).join('');
+}
+
+// Shift line colors for each of the 3 groups
+const SL_COLORS = ['#C0392B', '#1a5fa8', '#7F77DD'];
+
+function getShiftLineGroups() {
+  // Returns array of 3 groups; each group is a sorted array of {stage, shift} pairs (may be empty)
+  const groups = [];
+  for (let g = 1; g <= 3; g++) {
+    const pairs = [];
+    for (let p = 1; p <= 3; p++) {
+      const s = parseFloat(document.getElementById('sl' + g + '_' + p + 's').value);
+      const v = parseFloat(document.getElementById('sl' + g + '_' + p + 'v').value);
+      if (isFinite(s) && isFinite(v)) pairs.push({ stage: s, shift: v });
+    }
+    pairs.sort((a, b) => a.stage - b.stage);
+    groups.push(pairs);
+  }
+  return groups;
+}
+
+function buildShiftLineDataset(pairs, yMin, yMax, color, groupIdx) {
+  if (!pairs.length) return null;
+  const ratingMinStage = S.baseTable.length ? S.baseTable[0].stage : yMin;
+  const ratingMaxStage = S.baseTable.length ? S.baseTable[S.baseTable.length - 1].stage : yMax;
+  const pts = [];
+  const lowestPair = pairs[0];
+  const loExtentStage = Math.min(ratingMinStage, yMin, lowestPair.stage);
+  if (loExtentStage < lowestPair.stage) pts.push({ x: lowestPair.shift, y: loExtentStage });
+  pairs.forEach(p => pts.push({ x: p.shift, y: p.stage }));
+  const highestPair = pairs[pairs.length - 1];
+  const hiExtentStage = Math.max(ratingMaxStage, yMax, highestPair.stage);
+  if (hiExtentStage > highestPair.stage) pts.push({ x: highestPair.shift, y: hiExtentStage });
+  return {
+    label: 'Shift line ' + (groupIdx + 1),
+    data: pts,
+    borderColor: color,
+    backgroundColor: 'transparent',
+    borderWidth: 2.5,
+    pointRadius: pts.map(p => pairs.some(up => up.stage === p.y && up.shift === p.x) ? 4 : 0),
+    pointBackgroundColor: color,
+    pointHoverRadius: 7,
+    showLine: true,
+    tension: 0,
+    fill: false,
+    order: 0
+  };
+}
+
+function clearAllShiftLines() {
+  for (let g = 1; g <= 3; g++) {
+    for (let p = 1; p <= 3; p++) {
+      document.getElementById('sl' + g + '_' + p + 's').value = '';
+      document.getElementById('sl' + g + '_' + p + 'v').value = '';
+    }
+  }
+  renderShiftScatter();
+}
+
+function renderShiftScatter() {
+  const wrap = document.getElementById('shiftWrap');
+  const w = 580;
+  const h = 680;
+  wrap.style.width = w + 'px';
+  wrap.style.height = h + 'px';
+  const canvas = document.getElementById('shiftChart');
+  canvas.width = w; canvas.height = h;
+  canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+
+  if (shiftChart) { shiftChart.destroy(); shiftChart = null; }
+  const existingSC = Chart.getChart(canvas);
+  if (existingSC) existingSC.destroy();
+  const ctx = canvas.getContext('2d');
+
+  // Build both computed-shift and applied-shift point arrays
+  const SHIFT_DIFF_THRESH = 0.001; // ft — below this the two are considered equal
+  const ptsComp = []; // primary: computed shift, filled, with error bars
+  const ptsAppl = []; // secondary: applied shift, unfilled, no error bars (only when differs)
+
+  S.measurements
+    .filter(m => measPlotted.has(m.measNo) && isFinite(m.gageHeight) && m.discharge > 0)
+    .forEach(m => {
+      const rtg = measRating.get(m.measNo) || 'G';
+      const stageForQ = interpInverse(m.discharge);
+      const compShift = isFinite(stageForQ) ? stageForQ - m.gageHeight : null;
+      if (compShift === null) return;
+
+      const eb = shiftErrorBars(m.gageHeight, m.discharge, rtg);
+      ptsComp.push({
+        x: compShift, y: m.gageHeight,
+        xLo: isFinite(eb.shiftLo) ? eb.shiftLo : compShift,
+        xHi: isFinite(eb.shiftHi) ? eb.shiftHi : compShift,
+        label: String(m.measNo), measNo: m.measNo, date: m.date
+      });
+
+      // Only add applied-shift marker if it differs meaningfully from computed shift
+      if (isFinite(m.shiftAdj) && Math.abs(m.shiftAdj - compShift) > SHIFT_DIFF_THRESH) {
+        ptsAppl.push({
+          x: m.shiftAdj, y: m.gageHeight,
+          measNo: m.measNo, date: m.date
+        });
+      }
+    });
+
+  const xMin = rv('sxMin', autoShift.xMin), xMax = rv('sxMax', autoShift.xMax);
+  const yMin = rv('syMin', autoShift.yMin), yMax = rv('syMax', autoShift.yMax);
+
+  const datasets = [];
+
+  // Primary: computed shift — filled, with error bars and labels
+  datasets.push({
+    label: 'Computed shift',
+    data: ptsComp,
+    borderColor: '#7F77DD', backgroundColor: '#7F77DD',
+    borderWidth: 1.5, pointRadius: 4, pointHoverRadius: 6,
+    showLine: false, fill: false,
+    _showLabels: true, _labelColor: labelColor('--label-purple'),
+    _errorBars: 'horizontal', _errorBarColor: '#7F77DD'
+  });
+
+  // Secondary: applied shift — unfilled hollow marker, no error bars, no labels
+  if (ptsAppl.length) {
+    datasets.push({
+      label: 'Applied shift',
+      data: ptsAppl,
+      borderColor: '#7F77DD', backgroundColor: 'transparent',
+      borderWidth: 1.5, pointRadius: 4, pointHoverRadius: 6,
+      showLine: false, fill: false
+    });
+  }
+
+  // In-use static shift: vertical dashed line at x = currentShift
+  if (S.currentShift != null && ck('chkInuseShift')) {
+    const shiftVal = S.currentShift;
+    const lineY1 = isFinite(yMin) ? yMin : autoShift.yMin;
+    const lineY2 = isFinite(yMax) ? yMax : autoShift.yMax;
+    datasets.push({
+      label: 'In-use shift',
+      data: [{ x: shiftVal, y: lineY1 }, { x: shiftVal, y: lineY2 }],
+      borderColor: '#e67e22', backgroundColor: 'transparent',
+      borderWidth: 2, borderDash: [6, 4], pointRadius: 0,
+      showLine: true, tension: 0, fill: false, order: 0
+    });
+  }
+
+  // In-use shift relation: the shift curve from API (with same extension behavior as user lines)
+  if (S.shiftCurve.length && ck('chkInuseRelation')) {
+    const pairs = S.shiftCurve.map(p => ({ stage: p.stage, shift: p.shift }));
+    const ds = buildShiftLineDataset(pairs, yMin, yMax, '#e67e22', -1);
+    if (ds) {
+      ds.label = 'Current in-use VST';
+      ds.borderWidth = 2.5;
+      ds.borderDash = undefined;
+      datasets.push(ds);
+    }
+  }
+
+  // Up to 3 user-defined shift line datasets
+  const groups = getShiftLineGroups();
+  groups.forEach((pairs, gi) => {
+    const ds = buildShiftLineDataset(pairs, yMin, yMax, SL_COLORS[gi], gi);
+    if (ds) datasets.push(ds);
+  });
+
+  shiftChart = new Chart(ctx, {
+    type: 'scatter',
+    data: { datasets },
+    options: {
+      responsive: false,
+      _drawZeroX: true,
+      layout: { padding: { top: 20, right: 8, bottom: 4, left: 4 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const lb = ctx.dataset.label;
+              if (lb === 'In-use shift') return `In-use shift: ${ctx.raw.x.toFixed(2)} ft`;
+              if (lb === 'Current in-use VST') return `Current in-use VST — Shift: ${ctx.raw.x.toFixed(2)} ft | Stage: ${ctx.raw.y.toFixed(2)} ft`;
+              if (lb?.startsWith('Shift line')) return `${lb} — Shift: ${ctx.raw.x.toFixed(2)} ft | Stage: ${ctx.raw.y.toFixed(2)} ft`;
+              if (lb === 'Applied shift') return `#${ctx.raw.measNo} Applied shift: ${ctx.raw.x.toFixed(2)} ft | Stage: ${ctx.raw.y.toFixed(2)} ft`;
+              if (ctx.raw.measNo !== undefined) return `#${ctx.raw.measNo} Computed shift: ${ctx.raw.x.toFixed(2)} ft | Stage: ${ctx.raw.y.toFixed(2)} ft`;
+              return null;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ...axisOpts('Shift (ft)'), min: xMin, max: xMax, ticks: { color: TK(), font: { size: 10, family: "'Trebuchet MS', Tahoma, Aptos, sans-serif" }, callback: v => v.toFixed(2), maxTicksLimit: 6 } },
+        y: { ...axisOpts('Stage (ft)'), min: yMin, max: yMax, ticks: { color: TK(), font: { size: 10, family: "'Trebuchet MS', Tahoma, Aptos, sans-serif" }, callback: v => v.toFixed(2), maxTicksLimit: 8 } }
+      }
+    }
+  });
+  // Shift lines also project onto the rating chart — keep them in sync
+  if (ratingChart) renderRating();
+}
+
+function buildMeasTable() {
+  document.getElementById('measTbody').innerHTML = S.measurements.map(m => {
+    // Computed shift: stage on base rating that yields measured Q, minus actual gage height
+    const stageForQ = interpInverse(m.discharge);
+    const compShift = isFinite(stageForQ) ? stageForQ - m.gageHeight : null;
+
+    // S_Error%: % difference between discharge implied by computed shift vs applied shift
+    // Qt_computed = interp(baseTable, gageHeight + compShift)
+    // Qt_applied  = interp(baseTable, gageHeight + appliedShift)
+    // S_Error% = ((Qt_computed - Qt_applied) / Qt_applied) * 100
+    let sErr = null;
+    if (compShift !== null && isFinite(m.shiftAdj)) {
+      const qtComp = interp(S.baseTable, m.gageHeight + compShift);
+      const qtAppl = interp(S.baseTable, m.gageHeight + m.shiftAdj);
+      if (isFinite(qtComp) && isFinite(qtAppl) && qtAppl > 0) {
+        sErr = (qtComp - qtAppl) / qtAppl * 100;
+      }
+    }
+    const sErrStyle = sErr !== null
+      ? (Math.abs(sErr) > 10 ? 'background:var(--red-bg);color:var(--red-text);'
+        : Math.abs(sErr) > 5  ? 'background:var(--amber-bg);color:var(--amber-text);'
+        : 'background:var(--gray-bg);color:var(--gray-text);')
+      : '';
+    const sErrStr = sErr !== null
+      ? `<span class="pct-pill" style="${sErrStyle}">${sErr >= 0 ? '+' : ''}${sErr.toFixed(1)}%</span>`
+      : '—';
+
+    // R_Error%: ((Qm - Qt) / Qt) * 100  where Qt = base table discharge at gage height
+    const bq = interp(S.baseTable, m.gageHeight);
+    const pct = isFinite(bq) && bq > 0 ? (m.discharge - bq) / bq * 100 : null;
+
+    const dateShort = m.date ? m.date.substring(0, 10) : '—';
+    const pctStyle = pct !== null
+      ? (Math.abs(pct) > 10 ? 'background:var(--red-bg);color:var(--red-text);'
+        : Math.abs(pct) > 5 ? 'background:var(--amber-bg);color:var(--amber-text);'
+        : 'background:var(--gray-bg);color:var(--gray-text);')
+      : '';
+    const pctStr = pct !== null
+      ? `<span class="pct-pill" style="${pctStyle}">${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%</span>`
+      : '—';
+    const rtg = measRating.get(m.measNo) || 'G';
+    return `<tr class="dr" id="mrow-${m.measNo}" onclick="rowClick('${m.measNo}')">
+      <td><input type="checkbox" class="plot-check" id="chk-${m.measNo}" checked onclick="event.stopPropagation();toggleMeas('${m.measNo}')"/></td>
+      <td>${m.measNo}</td>
+      <td title="${m.date}">${dateShort}</td>
+      <td>${m.gageHeight.toFixed(2)}</td>
+      <td>${m.discharge.toFixed(1)}</td>
+      <td>${compShift !== null ? compShift.toFixed(2) : '—'}</td>
+      <td>${m.shiftAdj.toFixed(2)}</td>
+      <td>${sErrStr}</td>
+      <td>${pctStr}</td>
+      <td><select class="rtg-select rtg-${rtg}" id="rtg-${m.measNo}" onclick="event.stopPropagation()" onchange="setRating('${m.measNo}',this)">
+        <option value="G"${rtg==='G'?' selected':''}>G</option>
+        <option value="F"${rtg==='F'?' selected':''}>F</option>
+        <option value="P"${rtg==='P'?' selected':''}>P</option>
+      </select></td>
+    </tr>`;
+  }).join('');
+}
+
+function rowClick(n) { document.querySelectorAll('.dr').forEach(r => r.classList.remove('sel')); document.getElementById('mrow-' + n)?.classList.add('sel'); }
+function toggleMeas(n) { if (measPlotted.has(n)) measPlotted.delete(n); else measPlotted.add(n); renderCorr(); renderShiftScatter(); if (S_ts.rawPts.length) renderTS(); }
+function toggleAll() {
+  const allOn = S.measurements.every(m => measPlotted.has(m.measNo));
+  S.measurements.forEach(m => {
+    if (allOn) measPlotted.delete(m.measNo); else measPlotted.add(m.measNo);
+    const e = document.getElementById('chk-' + m.measNo);
+    if (e) e.checked = !allOn;
+  });
+  renderCorr(); renderShiftScatter(); if (S_ts.rawPts.length) renderTS();
+}
+
+function setRating(measNo, sel) {
+  const rtg = sel.value;
+  measRating.set(measNo, rtg);
+  // Update select color class
+  sel.className = 'rtg-select rtg-' + rtg;
+  renderCorr();
+  renderShiftScatter();
+  if (S_ts.rawPts.length) renderTS();
+}
+
+window.addEventListener('resize', () => { if (shiftChart) renderShiftScatter(); if (ratingChart) renderRating(); });
+
+// ── Time Series ────────────────────────────────────────────────────
+let tsChart = null;
+let S_ts = { rawPts: [] };
+let S_ts2 = { rawPts: [], abbrev: null };
+let lastFetchedAbbr = null;
+
+// Set TS date defaults: today-14d to today
+(function() {
+  const fmt = d => d.toISOString().slice(0,10);
+  const today = new Date();
+  const prior = new Date(today); prior.setDate(today.getDate() - 14);
+  document.getElementById('tsFrom').value = fmt(prior);
+  document.getElementById('tsTo').value = fmt(today);
+})();
+
+// Reset TS data when the station abbreviation changes
+document.getElementById('abbrev').addEventListener('input', function() {
+  if (lastFetchedAbbr !== null && this.value.toUpperCase() !== lastFetchedAbbr) {
+    S_ts.rawPts = [];
+    if (tsChart) { tsChart.destroy(); tsChart = null; }
+    document.getElementById('tsStatus').textContent = 'Station changed — re-fetch time series.';
+    const canvas = document.getElementById('tsChart');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+}); // {t: Date, q: number}[]
+
+// Format date for TS API: MM/DD/YYYY URL-encoded
+function fmtDateTS(id) {
+  const d = document.getElementById(id).value;
+  if (!d) return null;
+  const [y, m, day] = d.split('-');
+  return encodeURIComponent(m + '/' + day + '/' + y);
+}
+
+function buildTSToggles() {
+  const hasMeas = S.measurements.length > 0;
+  const hasS2 = S_ts2.rawPts.length > 0;
+  document.getElementById('tsToggles').innerHTML = `
+    <label class="ti"><input type="checkbox" id="chkTS" checked onchange="renderTS()">
+      <span style="display:inline-block;width:16px;height:3px;background:#2980b9;border-radius:1px;flex-shrink:0;"></span>
+      ${abbr() || 'Station 1'}</label>
+    <label class="ti"><input type="checkbox" id="chkTSBand" checked onchange="renderTS()">
+      <span style="display:inline-block;width:16px;height:6px;background:#2980b922;border:1px dashed #2980b9;border-radius:2px;flex-shrink:0;"></span>
+      ±band</label>
+    ${hasS2 ? `<label class="ti"><input type="checkbox" id="chkTS2" checked onchange="renderTS()">
+      <span style="display:inline-block;width:16px;height:3px;background:#c8820a;border-radius:1px;flex-shrink:0;"></span>
+      ${S_ts2.abbrev} (Y2)</label>` : ''}
+    ${hasMeas ? `<label class="ti"><input type="checkbox" id="chkTSMeas" checked onchange="renderTS()">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#D85A30;flex-shrink:0;"></span>
+      Field measurements</label>` : ''}`;
+}
+
+async function fetchAndRenderTS() {
+  const start = fmtDateTS('tsFrom'), end = fmtDateTS('tsTo');
+  if (!start || !end) { document.getElementById('tsStatus').textContent = 'Set start and end dates.'; return; }
+  document.getElementById('tsStatus').textContent = 'Fetching…';
+  try {
+    const url = DWR + 'telemetrytimeseriesraw/?format=json&dateFormat=spaceSepToMinutes'
+      + '&fields=measDateTime%2CmeasValue'
+      + '&abbrev=' + encodeURIComponent(abbr())
+      + '&parameter=' + encodeURIComponent(S.parameter)
+      + '&startDate=' + start + '&endDate=' + end
+      + '&apiKey=' + encodeURIComponent(key());
+    const data = await apiFetch(url);
+    S_ts.rawPts = (data.ResultList || [])
+      .map(r => ({ t: new Date(r.measDateTime.replace(' ', 'T')), q: +r.measValue }))
+      .filter(p => isFinite(p.q) && p.q >= 0 && !isNaN(p.t));
+
+    // Insert null sentinels where time gaps exceed 30 min so the line breaks rather than bridges
+    const GAP_MS = 30 * 60 * 1000;
+    const gapped = [];
+    S_ts.rawPts.forEach((pt, i) => {
+      if (i > 0 && pt.t.getTime() - S_ts.rawPts[i-1].t.getTime() > GAP_MS) {
+        gapped.push({ t: null, q: null }); // sentinel — null breaks the line
+      }
+      gapped.push(pt);
+    });
+    S_ts.rawPts = gapped;
+    document.getElementById('tsStatus').textContent = S_ts.rawPts.length + ' points loaded';
+    buildTSToggles();
+    renderTS();
+  } catch(e) {
+    document.getElementById('tsStatus').textContent = 'Error: ' + e.message;
+    console.error(e);
+  }
+}
+
+async function fetchTS2() {
+  const abbrev2 = document.getElementById('tsAbbrev2').value.trim();
+  if (!abbrev2) { document.getElementById('tsStatus2').textContent = 'Enter station 2 abbreviation.'; return; }
+  const start = fmtDateTS('tsFrom'), end = fmtDateTS('tsTo');
+  if (!start || !end) { document.getElementById('tsStatus2').textContent = 'Set date range first.'; return; }
+  document.getElementById('tsStatus2').textContent = 'Fetching…';
+  try {
+    // Auto-detect parameter for station 2
+    const meta = await apiFetch(DWR + 'telemetrydecodesettings/?format=json&abbrev='
+      + encodeURIComponent(abbrev2) + '&apiKey=' + encodeURIComponent(key()));
+    const param2 = meta.ResultList?.[0]?.parameter || 'DISCHRG';
+    const url = DWR + 'telemetrytimeseriesraw/?format=json&dateFormat=spaceSepToMinutes'
+      + '&fields=measDateTime%2CmeasValue'
+      + '&abbrev=' + encodeURIComponent(abbrev2)
+      + '&parameter=' + encodeURIComponent(param2)
+      + '&startDate=' + start + '&endDate=' + end
+      + '&apiKey=' + encodeURIComponent(key());
+    const data = await apiFetch(url);
+    S_ts2.rawPts = (data.ResultList || [])
+      .map(r => ({ t: new Date(r.measDateTime.replace(' ', 'T')), q: +r.measValue }))
+      .filter(p => isFinite(p.q) && p.q >= 0 && !isNaN(p.t));
+    S_ts2.abbrev = abbrev2;
+    document.getElementById('tsStatus2').textContent = abbrev2 + ': ' + S_ts2.rawPts.length + ' pts';
+    buildTSToggles();
+    renderTS();
+  } catch(e) {
+    document.getElementById('tsStatus2').textContent = 'Error: ' + e.message;
+    console.error(e);
+  }
+}
+
+function clearTS2() {
+  S_ts2 = { rawPts: [], abbrev: null };
+  document.getElementById('tsAbbrev2').value = '';
+  document.getElementById('tsStatus2').textContent = '';
+  ['tsY2Min','tsY2Max'].forEach(id => document.getElementById(id).value = '');
+  buildTSToggles();
+  renderTS();
+}
+
+// Format a ms timestamp for tick labels — smart: show date only, condense repeated months
+function fmtTick(ms) {
+  const d = new Date(ms);
+  const mo = d.toLocaleString('en-US', { month: 'short' });
+  const day = d.getDate();
+  return mo + ' ' + day;
+}
+function fmtTooltipDate(ms) {
+  const d = new Date(ms);
+  return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function renderTS() {
+  const wrap = document.getElementById('tsWrap');
+  const W = 1100, H = 360;
+  wrap.style.width = W + 'px'; wrap.style.height = H + 'px';
+  const canvas = document.getElementById('tsChart');
+  canvas.width = W; canvas.height = H;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+  // Destroy any existing chart on this canvas BEFORE calling getContext
+  if (tsChart) { tsChart.destroy(); tsChart = null; }
+  const existing = Chart.getChart(canvas);
+  if (existing) existing.destroy();
+
+  const ctx = canvas.getContext('2d');
+  if (!S_ts.rawPts.length) return;
+
+  const pct = parseFloat(document.getElementById('tsBandPct').value) / 100;
+  const qs = S_ts.rawPts.map(p => p.q).filter(q => q !== null && q > 0);
+  if (!qs.length) return;
+  const rawMin = Math.min(...qs), rawMax = Math.max(...qs);
+
+  // toMs: null sentinels become null data points — Chart.js breaks the line at null
+  const toMs = p => p.q === null ? null : ({ x: p.t.getTime(), y: p.q });
+
+  const datasets = [];
+  const showTS   = ck('chkTS')     !== false;
+  const showBand = ck('chkTSBand') !== false;
+  const showMeas = ck('chkTSMeas') !== false;
+  const hasS2  = S_ts2.rawPts.length > 0;
+  const showS2 = hasS2 && ck('chkTS2') !== false;
+
+  if (showBand && showTS) {
+    const hiPts = S_ts.rawPts.map(p => ({ x: p.t.getTime(), y: p.q * (1 + pct) }));
+    const loPts = S_ts.rawPts.map(p => ({ x: p.t.getTime(), y: p.q * (1 - pct) }));
+    datasets.push({ type: 'line', label: 'band_hi', data: hiPts, borderColor: 'transparent', backgroundColor: 'rgba(41,128,185,0.10)', borderWidth: 0, pointRadius: 0, tension: 0, fill: 1, order: 10 });
+    datasets.push({ type: 'line', label: 'band_lo', data: loPts, borderColor: 'transparent', backgroundColor: 'transparent', borderWidth: 0, pointRadius: 0, tension: 0, fill: false, order: 11 });
+  }
+
+  if (showTS) {
+    datasets.push({ label: abbr() || 'Station 1', data: S_ts.rawPts.map(toMs), borderColor: '#2980b9', backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 0, showLine: true, tension: 0, fill: false, spanGaps: false, order: 2 });
+  }
+
+  if (showMeas && S.measurements.length) {
+    const pts = S.measurements.filter(m => measPlotted.has(m.measNo) && m.discharge > 0).map(m => {
+      const rtg = measRating.get(m.measNo) || 'G';
+      const p = ratingPct(rtg);
+      const ms = new Date(m.date.replace(' ', 'T')).getTime();
+      return { x: ms, y: m.discharge,
+               yLo: m.discharge * (1 - p), yHi: m.discharge * (1 + p),
+               label: String(m.measNo), measNo: m.measNo };
+    }).filter(p => isFinite(p.x));
+    if (pts.length) datasets.push({
+      label: 'Field measurements', data: pts,
+      borderColor: '#D85A30', backgroundColor: '#D85A30',
+      borderWidth: 1.5, pointRadius: 4, pointHoverRadius: 6,
+      showLine: false, fill: false, order: 1,
+      _showLabels: true, _labelColor: labelColor('--label-coral'),
+      _errorBars: 'vertical', _errorBarColor: '#D85A30'
+    });
+  }
+
+  // Station 2 — amber, right Y2 axis, no band
+  if (showS2) {
+    datasets.push({
+      label: S_ts2.abbrev, data: S_ts2.rawPts.map(p => ({ x: p.t.getTime(), y: p.q })),
+      borderColor: '#c8820a', backgroundColor: 'transparent',
+      borderWidth: 1.5, pointRadius: 0, showLine: true, tension: 0,
+      fill: false, order: 2, yAxisID: 'y2'
+    });
+  }
+
+  // Compute x axis bounds — user overrides take priority over data extents
+  const xVals = [
+    ...S_ts.rawPts.filter(p => p.t).map(p => p.t.getTime()),
+    ...(showS2 ? S_ts2.rawPts.filter(p => p.t).map(p => p.t.getTime()) : [])
+  ];
+  const xDataMin = Math.min(...xVals), xDataMax = Math.max(...xVals);
+  const tsXMinVal = document.getElementById('tsXMin').value;
+  const tsXMaxVal = document.getElementById('tsXMax').value;
+  const xMin = tsXMinVal ? new Date(tsXMinVal).getTime() : xDataMin;
+  const xMax = tsXMaxVal ? new Date(tsXMaxVal + 'T23:59:59').getTime() : xDataMax;
+
+  // Y axis bounds — user overrides take priority over auto 2× range
+  const tsYMinVal = parseFloat(document.getElementById('tsYMin').value);
+  const tsYMaxVal = parseFloat(document.getElementById('tsYMax').value);
+  const yMin = isFinite(tsYMinVal) ? tsYMinVal : 0;
+  const yMax = isFinite(tsYMaxVal) ? tsYMaxVal : Math.ceil(rawMax * 1.25);
+  const DAY = 86400000;
+  const spanDays = (xMax - xMin) / DAY;
+  const tickEvery = spanDays <= 14 ? 1 : spanDays <= 60 ? 3 : spanDays <= 120 ? 7 : spanDays <= 365 ? 14 : 30;
+  const tickMs = [];
+  // Start at the first midnight on or after xMin
+  const startDay = new Date(xMin); startDay.setHours(0,0,0,0);
+  if (startDay.getTime() < xMin) startDay.setDate(startDay.getDate() + 1);
+  for (let d = startDay.getTime(); d <= xMax; d += tickEvery * DAY) tickMs.push(d);
+
+  tsChart = new Chart(ctx, {
+    type: 'scatter',
+    data: { datasets },
+    options: {
+      responsive: false,
+      layout: { padding: { top: 20, right: 16, bottom: 4, left: 4 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: false }
+      },
+      scales: {
+        x: {
+          type: 'linear',
+          min: xMin, max: xMax,
+          border: { color: AX(), width: 2 },
+          title: { display: true, text: 'Date', color: TK(), font: { size: 11, family: "'Trebuchet MS', Tahoma, Aptos, sans-serif" } },
+          grid: { color: GRID() },
+          ticks: {
+            color: TK(),
+            font: { size: 10, family: "'Trebuchet MS', Tahoma, Aptos, sans-serif" },
+            maxRotation: 35,
+            // Supply explicit tick values so Chart.js doesn't invent its own raw ms labels
+            afterBuildTicks(axis) { axis.ticks = tickMs.map(v => ({ value: v })); },
+            callback: v => fmtTick(v)
+          }
+        },
+        y: { ...axisOpts('Discharge (cfs)'), min: yMin, max: yMax },
+        ...(showS2 ? { y2: {
+          type: 'linear', position: 'right',
+          min: (() => { const v = parseFloat(document.getElementById('tsY2Min').value); const q2 = S_ts2.rawPts.map(p=>p.q).filter(q=>q>0); return isFinite(v) ? v : 0; })(),
+          max: (() => { const v = parseFloat(document.getElementById('tsY2Max').value); const q2 = S_ts2.rawPts.map(p=>p.q).filter(q=>q>0); return isFinite(v) ? v : Math.ceil((q2.length ? Math.max(...q2) : yMax) * 1.25); })(),
+          border: { color: '#c8820a', width: 2 },
+          grid: { drawOnChartArea: false },
+          title: { display: true, text: (S_ts2.abbrev || 'Station 2') + ' (cfs)', color: '#c8820a', font: { size: 11, family: "'Trebuchet MS', Tahoma, Aptos, sans-serif" } },
+          ticks: { color: '#c8820a', font: { size: 10, family: "'Trebuchet MS', Tahoma, Aptos, sans-serif" }, callback: v => v >= 1000 ? (v/1000).toFixed(1)+'k' : v }
+        }} : {})
+      }
+    }
+  });
+
+  // Legend
+  const items = [
+    { label: abbr() || 'Station 1', color: '#2980b9', dot: false, band: false, hide: !showTS },
+    { label: `±${(pct*100).toFixed(0)}% band`, color: '#2980b9', dot: false, band: true, hide: !showBand || !showTS },
+    { label: S_ts2.abbrev || 'Station 2', color: '#c8820a', dot: false, band: false, hide: !showS2 },
+    { label: 'Field measurements', color: '#D85A30', dot: true, band: false, hide: !showMeas || !S.measurements.length },
+  ];
+  document.getElementById('tsLegend').innerHTML = items.filter(i => !i.hide).map(i => {
+    const sw = i.dot  ? `width:8px;height:8px;border-radius:50%;background:${i.color};`
+             : i.band ? `width:16px;height:6px;background:${i.color}22;border:1px dashed ${i.color};border-radius:2px;`
+             :          `width:16px;height:3px;background:${i.color};border-radius:1px;`;
+    return `<span><span style="${sw}display:inline-block;flex-shrink:0;"></span>${i.label}</span>`;
+  }).join('');
+}
+
+// ── API Key localStorage ──────────────────────────────────────────
+function saveKey() {
+  const k = document.getElementById('apikey').value;
+  try {
+    if (k) { localStorage.setItem('cdwr_apikey', k); showKeyHint(true); }
+    else   { localStorage.removeItem('cdwr_apikey'); showKeyHint(false); }
+  } catch(e) {}
+}
+function loadKey() {
+  try {
+    const k = localStorage.getItem('cdwr_apikey');
+    if (k) { document.getElementById('apikey').value = k; showKeyHint(true); }
+  } catch(e) {}
+}
+function clearSavedKey() {
+  try { localStorage.removeItem('cdwr_apikey'); } catch(e) {}
+  document.getElementById('apikey').value = '';
+  showKeyHint(false);
+}
+function showKeyHint(saved) {
+  const el = document.getElementById('apikeyHint');
+  if (!el) return;
+  el.textContent = saved ? '· saved ✕' : '';
+}
+loadKey();
+
+// ── Stage–Discharge Relation (Panel 5) ───────────────────────────
+let ratingChart = null;
+const SL_COLORS_R = ['#C0392B', '#1a5fa8', '#7F77DD']; // match shift scatter colors
+const safeLog = v => Math.max(0.001, v); // log scale: never zero or negative
+
+function resetRatingRange() {
+  ['rqMin','rqMax','rsMin','rsMax'].forEach(id => document.getElementById(id).value = '');
+  renderRating();
+}
+
+function buildRatingToggles() {
+  const items = [
+    { id:'chkRBase',  label:'Base rating',   color:'#888780', dash:true },
+    { id:'chkRSAdj',  label:'In-use shift',  color:'#1D9E75', dash:false },
+    { id:'chkRMeas',  label:'Field meas.',   color:'#D85A30', dot:true },
+    { id:'chkRSL1',   label:'VST-1', color:SL_COLORS_R[0], dash:false, defOff:true },
+    { id:'chkRSL2',   label:'VST-2', color:SL_COLORS_R[1], dash:false, defOff:true },
+    { id:'chkRSL3',   label:'VST-3', color:SL_COLORS_R[2], dash:false, defOff:true },
+  ];
+  document.getElementById('ratingToggles').innerHTML = items.map(i => {
+    const sw = i.dot
+      ? `width:8px;height:8px;border-radius:50%;background:${i.color};display:inline-block;flex-shrink:0;`
+      : `width:16px;height:3px;background:${i.color};border-radius:1px;display:inline-block;flex-shrink:0;`
+        + (i.dash ? `background:repeating-linear-gradient(90deg,${i.color} 0,${i.color} 4px,transparent 4px,transparent 8px);` : '');
+    return `<label class="ti"><input type="checkbox" id="${i.id}" ${i.defOff ? '' : 'checked'} onchange="renderRating()">
+      <span style="${sw}"></span>${i.label}</label>`;
+  }).join('');
+}
+
+// Interpolate shift at a given stage from sorted [{stage,shift}] pairs,
+// using flat extension beyond the defined range (same as scatter plot)
+function interpShiftForPairs(pairs, stage) {
+  if (!pairs.length) return null;
+  if (stage <= pairs[0].stage) return pairs[0].shift;
+  if (stage >= pairs[pairs.length-1].stage) return pairs[pairs.length-1].shift;
+  for (let i = 0; i < pairs.length-1; i++) {
+    if (stage >= pairs[i].stage && stage <= pairs[i+1].stage) {
+      const t = (stage - pairs[i].stage) / (pairs[i+1].stage - pairs[i].stage);
+      return pairs[i].shift + t * (pairs[i+1].shift - pairs[i].shift);
+    }
+  }
+  return null;
+}
+
+// Generate explicit minor tick values between each decade for log axes
+function logMinorTicks(mn, mx) {
+  const ticks = [];
+  const expMin = Math.floor(Math.log10(mn)), expMax = Math.ceil(Math.log10(mx));
+  for (let e = expMin; e <= expMax; e++) {
+    const base = Math.pow(10, e);
+    [1,2,3,4,5,6,7,8,9].forEach(m => {
+      const v = base * m;
+      if (v >= mn * 0.99 && v <= mx * 1.01) ticks.push(v);
+    });
+  }
+  return ticks;
+}
+
+function buildUserShiftedRating(pairs) {
+  if (!pairs.length || !S.baseTable.length) return [];
+  return S.baseTable.map(p => {
+    const delta = interpShiftForPairs(pairs, p.stage);
+    if (delta === null) return null;
+    const q = interp(S.baseTable, p.stage + delta);
+    return (isFinite(q) && q > 0 && p.stage > 0) ? { x: q, y: p.stage } : null;
+  }).filter(Boolean);
+}
+
+function renderRating() {
+  // Size canvas to panel width
+  const panel = document.getElementById('ratingPanel');
+  const W = Math.max(900, (panel.clientWidth || 1100) - 48);
+  const H = 680;
+  const wrap = document.getElementById('ratingWrap');
+  wrap.style.width = W + 'px';
+  const canvas = document.getElementById('ratingChart');
+  canvas.width = W; canvas.height = H;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+
+  // Destroy existing chart first — BEFORE getContext
+  if (ratingChart) { ratingChart.destroy(); ratingChart = null; }
+  const existing = Chart.getChart(canvas);
+  if (existing) existing.destroy();
+  const ctx = canvas.getContext('2d');
+
+  // Filter data — log scale: ALL values must be > 0
+  const baseData = S.baseTable
+    .filter(p => p.discharge > 0 && p.stage > 0 && isFinite(p.discharge) && isFinite(p.stage))
+    .map(p => ({ x: p.discharge, y: p.stage }));
+
+  const shiftData = S.shiftAdjTable
+    .filter(p => p.discharge > 0 && p.stage > 0 && isFinite(p.discharge) && isFinite(p.stage))
+    .map(p => ({ x: p.discharge, y: p.stage }));
+
+  const measData = S.measurements
+    .filter(m => measPlotted.has(m.measNo) && m.discharge > 0 && m.gageHeight > 0
+              && isFinite(m.discharge) && isFinite(m.gageHeight))
+    .map(m => ({ x: m.discharge, y: m.gageHeight, label: String(m.measNo), measNo: m.measNo }));
+
+  if (!baseData.length) return; // nothing to draw
+
+  // Auto axis bounds from data
+  const allQ = [...baseData.map(p=>p.x), ...shiftData.map(p=>p.x), ...measData.map(p=>p.x)].filter(v=>v>0);
+  const allS = [...baseData.map(p=>p.y), ...shiftData.map(p=>p.y), ...measData.map(p=>p.y)].filter(v=>v>0);
+  const qMinAuto = safeLog(Math.min(...allQ) * 0.9);
+  const qMaxAuto = Math.ceil(Math.max(...allQ) * 1.1);
+  const sMinAuto = safeLog(Math.min(...allS) * 0.98);
+  const sMaxAuto = Math.ceil(Math.max(...allS) * 1.02);
+
+  const qMin = (() => { const v=parseFloat(document.getElementById('rqMin').value); return isFinite(v)&&v>0 ? safeLog(v) : qMinAuto; })();
+  const qMax = (() => { const v=parseFloat(document.getElementById('rqMax').value); return isFinite(v)&&v>0 ? v : qMaxAuto; })();
+  const sMin = (() => { const v=parseFloat(document.getElementById('rsMin').value); return isFinite(v)&&v>0 ? safeLog(v) : sMinAuto; })();
+  const sMax = (() => { const v=parseFloat(document.getElementById('rsMax').value); return isFinite(v)&&v>0 ? v : sMaxAuto; })();
+
+  // Safety: bail on invalid axis bounds (prevents blank canvas)
+  if (qMin <= 0 || qMax <= 0 || qMin >= qMax) return;
+  if (sMin <= 0 || sMax <= 0 || sMin >= sMax) return;
+
+  const ck = id => { const el=document.getElementById(id); return el ? el.checked : true; };
+
+  const datasets = [];
+
+  if (ck('chkRBase') && baseData.length)
+    datasets.push({ label:'Base rating', data:baseData, borderColor:'#888780', backgroundColor:'transparent', borderWidth:1.5, borderDash:[5,3], pointRadius:0, showLine:true, tension:0, fill:false, order:4 });
+
+  if (ck('chkRSAdj') && shiftData.length)
+    datasets.push({ label:'In-use shift', data:shiftData, borderColor:'#1D9E75', backgroundColor:'transparent', borderWidth:2, pointRadius:0, showLine:true, tension:0, fill:false, order:3 });
+
+  // User-defined shift line curves (VST-1/2/3)
+  const slGroups = getShiftLineGroups(); // defined in main script
+  slGroups.forEach((pairs, gi) => {
+    if (!ck('chkRSL' + (gi+1)) || !pairs.length) return;
+    const data = buildUserShiftedRating(pairs);
+    if (data.length) datasets.push({
+      label: 'VST-' + (gi+1), data,
+      borderColor: SL_COLORS_R[gi], backgroundColor:'transparent',
+      borderWidth:2, pointRadius:0, showLine:true, tension:0, fill:false, order:2-gi
+    });
+  });
+
+  if (ck('chkRMeas') && measData.length)
+    datasets.push({ label:'Field meas.', data:measData, borderColor:'#D85A30', backgroundColor:'#D85A30', borderWidth:1.5, pointRadius:4, pointHoverRadius:6, showLine:false, fill:false, order:1, _showLabels:true, _labelColor:labelColor('--label-coral') });
+
+  const axFont = { size:10, family:"'Trebuchet MS',Tahoma,Aptos,sans-serif" };
+
+  // For log axes: label powers of 10, show minor ticks at 2x, 3x...9x intervals
+  const logTickCb = v => {
+    if (v <= 0) return null;
+    const exp = Math.round(Math.log10(v));
+    if (Math.abs(v - Math.pow(10, exp)) / Math.pow(10, exp) < 0.01)
+      return v >= 1000 ? (v/1000).toFixed(0)+'k' : String(v);
+    return ''; // return empty string (not null) so minor grid lines still draw
+  };
+
+  // Generate tick arrays for each axis
+  const qTicks = logMinorTicks(qMin, qMax);
+  const sTicks = logMinorTicks(sMin, sMax);
+
+  ratingChart = new Chart(ctx, {
+    type:'scatter',
+    data:{ datasets },
+    options:{
+      responsive:false,
+      layout:{ padding:{ top:20, right:16, bottom:4, left:4 } },
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ callbacks:{ label: c => {
+          const d=c.raw;
+          if (d.measNo!==undefined) return `#${d.measNo} — Q:${d.x.toFixed(1)} cfs | Stage:${d.y.toFixed(2)} ft`;
+          return `Q:${d.x.toFixed(1)} cfs | Stage:${d.y.toFixed(2)} ft`;
+        }}}
+      },
+      scales:{
+        x:{ type:'logarithmic', min:qMin, max:qMax,
+            border:{ color:AX(), width:2 },
+            title:{ display:true, text:'Discharge (cfs)', color:TK(), font:axFont },
+            grid:{ color:GRID() },
+            ticks:{ color:TK(), font:axFont, callback:logTickCb,
+                    afterBuildTicks: axis => { axis.ticks = qTicks.map(v => ({value:v})); } }
+          },
+        y:{ type:'logarithmic', min:sMin, max:sMax,
+            border:{ color:AX(), width:2 },
+            title:{ display:true, text:'Stage (ft)', color:TK(), font:axFont },
+            grid:{ color:GRID() },
+            ticks:{ color:TK(), font:axFont, callback:logTickCb,
+                    afterBuildTicks: axis => { axis.ticks = sTicks.map(v => ({value:v})); } }
+          }
+      }
+    }
+  });
+
+  // Legend
+  const legendItems = [
+    { label:'Base rating',   color:'#888780', dot:false, dash:true,  hide:!ck('chkRBase') ||!baseData.length },
+    { label:'In-use shift',  color:'#1D9E75', dot:false, dash:false, hide:!ck('chkRSAdj')||!shiftData.length },
+    ...slGroups.map((pairs,gi) => ({ label:'VST-'+(gi+1), color:SL_COLORS_R[gi], dot:false, dash:false, hide:!ck('chkRSL'+(gi+1))||!pairs.length })),
+    { label:'Field meas.',   color:'#D85A30', dot:true,  dash:false, hide:!ck('chkRMeas')||!measData.length },
+  ];
+  document.getElementById('ratingLegend').innerHTML = legendItems.filter(i=>!i.hide).map(i => {
+    const sw = i.dot ? `width:8px;height:8px;border-radius:50%;background:${i.color};`
+      : i.dash ? `width:16px;height:3px;background:repeating-linear-gradient(90deg,${i.color} 0,${i.color} 4px,transparent 4px,transparent 8px);`
+      : `width:16px;height:3px;background:${i.color};border-radius:1px;`;
+    return `<span><span style="${sw}display:inline-block;flex-shrink:0;"></span>${i.label}</span>`;
+  }).join('');
+}
+
+// ── Export ─────────────────────────────────────────────────────────
+// Chart titles for PNG export
+const CHART_TITLES = {
+  corrChart:   () => abbr() + ' — Correlation Plot',
+  shiftChart:  () => abbr() + ' — Stage-Shift Plot',
+  tsChart:     () => abbr() + ' — Discharge Time Series',
+  ratingChart: () => abbr() + ' — Stage–Discharge Relation',
+};
+
+function exportPNG(canvasId, name) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const bg     = isDark ? '#1e1d1b' : '#ffffff';
+  const txtCol = isDark ? '#e8e6e0' : '#1a1916';
+  const TITLE_H = 34;
+
+  const off = document.createElement('canvas');
+  off.width  = canvas.width;
+  off.height = canvas.height + TITLE_H;
+  const ctx = off.getContext('2d');
+
+  // Background
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, off.width, off.height);
+
+  // Title bar
+  const title = (CHART_TITLES[canvasId] && CHART_TITLES[canvasId]()) || name;
+  ctx.fillStyle = txtCol;
+  ctx.font = '600 13px "Trebuchet MS", Tahoma, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(title, 14, TITLE_H / 2);
+
+  // Date stamp right-aligned
+  ctx.font = '11px "Trebuchet MS", Tahoma, sans-serif';
+  ctx.fillStyle = isDark ? '#9e9c93' : '#6b6960';
+  ctx.textAlign = 'right';
+  ctx.fillText(new Date().toLocaleDateString('en-US', {year:'numeric',month:'short',day:'numeric'}), off.width - 14, TITLE_H / 2);
+
+  // Chart canvas below title
+  ctx.drawImage(canvas, 0, TITLE_H);
+
+  const a = document.createElement('a');
+  a.download = (abbr() || 'station') + '_' + name + '_' + new Date().toISOString().slice(0,10) + '.png';
+  a.href = off.toDataURL('image/png');
+  a.click();
+}
+
+function exportCSV() {
+  if (!S.measurements.length) return;
+  const header = ['Meas#','Date','Stage_ft','MeasQ_cfs','CompShift_ft','ApplShift_ft','S_Error%','R_Error%','Rating'];
+  const rows = S.measurements.map(m => {
+    const stageForQ = interpInverse(m.discharge);
+    const compShift = isFinite(stageForQ) ? stageForQ - m.gageHeight : null;
+    let sErr = '';
+    if (compShift !== null && isFinite(m.shiftAdj)) {
+      const qtComp = interp(S.baseTable, m.gageHeight + compShift);
+      const qtAppl = interp(S.baseTable, m.gageHeight + m.shiftAdj);
+      if (isFinite(qtComp) && isFinite(qtAppl) && qtAppl > 0)
+        sErr = ((qtComp - qtAppl) / qtAppl * 100).toFixed(1);
+    }
+    const bq = interp(S.baseTable, m.gageHeight);
+    const pct = isFinite(bq) && bq > 0 ? ((m.discharge - bq) / bq * 100).toFixed(1) : '';
+    const rtg = measRating.get(m.measNo) || 'G';
+    return [m.measNo, m.date, m.gageHeight.toFixed(2), m.discharge.toFixed(1),
+            compShift !== null ? compShift.toFixed(2) : '', m.shiftAdj.toFixed(2), sErr, pct, rtg].join(',');
+  });
+  const a = document.createElement('a');
+  a.download = (abbr() || 'station') + '_measurements_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.href = URL.createObjectURL(new Blob([[header.join(','), ...rows].join('\n')], {type:'text/csv'}));
+  a.click();
+}
+</script>
+<!-- PWA: inject manifest and register service worker from inline blobs -->
+<script>
+(function() {
+  // Inline manifest as a blob so the file stays fully self-contained
+  const manifest = {
+    name: 'CDWR Shift Analyzer',
+    short_name: 'Shift Analyzer',
+    description: 'Colorado DWR telemetry station shift analysis tool',
+    start_url: './',
+    display: 'standalone',
+    orientation: 'landscape',
+    background_color: '#f5f4f1',
+    theme_color: '#1a1916',
+    icons: [
+      {
+        src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='32' fill='%231a1916'/%3E%3Ctext x='96' y='130' font-size='110' text-anchor='middle' fill='%23ffffff' font-family='Trebuchet MS,sans-serif'%3E~%3C/text%3E%3C/svg%3E",
+        sizes: '192x192',
+        type: 'image/svg+xml',
+        purpose: 'any maskable'
+      },
+      {
+        src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='80' fill='%231a1916'/%3E%3Ctext x='256' y='350' font-size='300' text-anchor='middle' fill='%23ffffff' font-family='Trebuchet MS,sans-serif'%3E~%3C/text%3E%3C/svg%3E",
+        sizes: '512x512',
+        type: 'image/svg+xml',
+        purpose: 'any maskable'
+      }
+    ]
+  };
+  const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+  const manifestURL = URL.createObjectURL(manifestBlob);
+  document.getElementById('pwaManifest').setAttribute('href', manifestURL);
+
+  // Service worker: cache the tool itself for offline use
+  if ('serviceWorker' in navigator) {
+    const swCode = `
+const CACHE = 'cdwr-shift-analyzer-v1';
+const CHART_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js';
+
+self.addEventListener('install', evt => {
+  evt.waitUntil(
+    caches.open(CACHE).then(cache => cache.addAll([CHART_CDN])).then(() => self.skipWaiting())
+  );
+});
+
+self.addEventListener('activate', evt => {
+  evt.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    ).then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', evt => {
+  // Cache-first for CDN assets; network-first for DWR API calls
+  const url = evt.request.url;
+  if (url.includes('cdnjs.cloudflare.com')) {
+    evt.respondWith(
+      caches.match(evt.request).then(cached => cached || fetch(evt.request).then(resp => {
+        const clone = resp.clone();
+        caches.open(CACHE).then(c => c.put(evt.request, clone));
+        return resp;
+      }))
+    );
+  }
+  // DWR API and everything else: network only (live data must be fresh)
+});
+`;
+    const swBlob = new Blob([swCode], { type: 'application/javascript' });
+    const swURL = URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swURL, { scope: './' })
+      .then(() => console.log('CDWR Shift Analyzer: service worker registered'))
+      .catch(e => console.warn('SW registration failed (blob SW needs HTTPS or localhost):', e.message));
+  }
+})();
+</script>
+</body>
+</html>
